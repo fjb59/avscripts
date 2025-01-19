@@ -370,7 +370,7 @@ class MediaFileBreaker:
         process.wait()  # Wait for the process to finish
         return process.returncode
 
-    def __init__(self, tSrcTextFile, tDstPath, tDelimiter='=',tsCodec="MP3", tdCodec="mp3"):
+    def __init__(self, tSrcTextFile,tSrcPath ="", tDstPath="", tDelimiter='=',tsCodec="MP3", tdCodec="mp3"):
         self.queue = {}
         self.writeQueue = []
         self.srcPath=""

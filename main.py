@@ -10,14 +10,19 @@ if __name__ == "__main__":
                         help=" (optional) Name of the subdirectory to move chunks into. Overrides location in text file")
     parser.add_argument("--delimiter", default="=", type=str,
                         help=" (optional) parameter delimiter.")
+    parser.add_argument("--operation", default="break", help="what do you want me to do? break= break a file into segments.")
     parser.add_argument("--codec_in", type=str, default="mp3", help="(optional))input file codec, e.g mp3")
 
     parser.add_argument("--codec_out", type=str, default="mp3", help="(optional) output file codec, e.g mp3")
 
     args = parser.parse_args()
-    srcTextFile, dstPath, delimiter, codecin, codecout = args.source_file, args.destination_subdirectory, args.delimiter, args.codec_in, args.codec_out
+    srcTextFile, dstPath, delimiter, operation, codecin, codecout = args.source_file, args.destination_subdirectory, args.delimiter, args.operation, args.codec_in, args.codec_out
 
-if os.path.exists(srcTextFile):
-    afb = MediaFileBreaker(srcTextFile, dstPath, tdCodec=codecout)
-    afb.go()
+    match operation:
+        case "break":
+            if os.path.exists(srcTextFile):
+                afb = MediaFileBreaker(srcTextFile, dstPath, tdCodec=codecout)
+                afb.go()
 
+        case "downsize":
+            pass
