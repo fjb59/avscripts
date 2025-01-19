@@ -1,0 +1,32 @@
+File=/home/docs/the life and times of a dustman.mp3
+OutputFolder=chapters. 
+
+
+# the remainder should be the following format. name=position in hours, minutes and seconds,
+#or just minutes and seconds
+
+Part1=0:0
+Part1.1=50:12
+Part1.2=1:10:14
+Part1.3=1:41:38
+Part1.4=1:50:25
+Part1.5=2:06:14
+Part1.6=2:28:21
+Part1.7=2:39:56
+Part1.8=2:58:16
+Part2.2=3:25:42
+Part2.3=3:58:52
+Part2.4=4:11:37
+Part2.5=4:19:57
+Part2.6=4:37:54
+Part2.7=4:48:25
+Part2.8=4:57:29
+Part2.9=5:13:00
+Part2.10=5:23:28
+Part2.11=5:40:00
+Part2.12=5:53:23
+Part2.13=6:25:34
+Part3.1=6:37:38
+Part3.2=7:01:47
+Part3.3=7:23:38
+Part3.4=7:44:40
