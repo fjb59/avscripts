@@ -277,7 +277,10 @@ class MediaFileBreaker:
     import os
     from PIL import Image
 
-    def downscale_images(self,input_dir, output_dir, percentage=50):
+    def downscale_images(self,input_dir, output_dir="", percentage=50,outputextension=""):
+        validExtensions=('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff')
+        if output_dir=="":
+            output_dir=input_dir
         ratio = 100//percentage
         # Ensure the output directory exists
         os.makedirs(output_dir, exist_ok=True)
@@ -286,8 +289,17 @@ class MediaFileBreaker:
         for filename in os.listdir(input_dir):
             input_path = os.path.join(input_dir, filename)
 
+            partfile,inputExtension = os.path.splitext(input_path)
+            if outputextension == "":
+                outputextension = inputExtension
+            if (input_dir == output_dir) and (outputextension == inputExtension):
+                print ("Source and destination can't be the same!")
+                continue
+            if not outputextension.startswith("."):
+                outputextension = "."+outputextension
+            output_path = os.path.join(output_dir, partfile+outputextension)
             # Check if the file is an image
-            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff')):
+            if filename.lower().endswith(validExtensions):
                 try:
                     # Open the image
                     with Image.open(input_path) as img:
@@ -299,8 +311,12 @@ class MediaFileBreaker:
                         scaled_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
                         # Save the scaled image in the output directory
-                        output_path = os.path.join(output_dir, filename)
-                        scaled_img.save(output_path)
+
+
+                        scaled_img.save(output_path,format=outputextension[1:])
+                        img.close()
+                        scaled_img.close()
+
 
                         print(f"Scaled {filename} to {new_width}x{new_height} and saved to {output_path}")
 
@@ -370,30 +386,34 @@ class MediaFileBreaker:
         process.wait()  # Wait for the process to finish
         return process.returncode
 
-    def __init__(self, tSrcTextFile,tSrcPath ="", tDstPath="", tDelimiter='=',tsCodec="MP3", tdCodec="mp3"):
+    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter='=',sCodec="MP3", dCodec="mp3"):
         self.queue = {}
         self.writeQueue = []
-        self.srcPath=""
+        self.srcPath=SrcPath
         self.OutputFile=""
         self.mediaType = modes.audio
-        self.operation = "break"
-        srcTextFile, self.dstFolder, self.delimiter = tSrcTextFile, tDstPath, tDelimiter
+        self.operation = Operation
 
-        if tsCodec in self.allowedAudioCodecs:
-            self.source_codec = tsCodec
+        self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
+
+        if sCodec in self.allowedAudioCodecs:
+            self.source_codec = sCodec
         else:
             self.source_codec = "MP3"
-        if tdCodec in self.allowedAudioCodecs:
-            self.destination_codec = tdCodec
+        if dCodec in self.allowedAudioCodecs:
+            self.destination_codec = dCodec
         else:
             self.destination_codec = "MP3"
 
-        self.rootFolder = os.path.dirname(srcTextFile)
-        self.breakFile(tSrcTextFile, self.dstFolder, tDelimiter)
+        self.rootFolder = os.path.dirname(self.srcTextFile)
+
 
     def go(self):
         match self.operation:
             case "break":
-                self.writeToFile()
+                self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
+
+            case "downsize":
+                self.downscale_images(self.srcPath,outputextension=".png")
 
 

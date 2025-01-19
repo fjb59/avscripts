@@ -26,3 +26,5 @@ if __name__ == "__main__":
 
         case "downsize":
             pass
+            afb = MediaFileBreaker(Operation="downsize",SrcPath=srcTextFile)
+            afb.go()
