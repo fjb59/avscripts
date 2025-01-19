@@ -9,4 +9,3 @@ Also included are RTFtoascii.py and swapPapameters.py. Both do what they say on 
 
 tested in python 3.12
 please ensure ffmpeg is installed.
-#
