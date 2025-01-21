@@ -21,7 +21,7 @@ if __name__ == "__main__":
     match operation:
         case "break":
             if os.path.exists(srcTextFile):
-                afb = MediaFileBreaker(srcTextFile, dstPath, tdCodec=codecout)
+                afb = MediaFileBreaker(SrcTextFile=srcTextFile)
                 afb.go()
 
         case "downsize":
@@ -29,4 +29,4 @@ if __name__ == "__main__":
             afb = MediaFileBreaker(Operation="downsize",SrcPath=srcTextFile)
             afb.go()
         case convert:
-            aef = MediaFileBreaker(Operation="convvrt",SrcPath=srcTextFile)
+            aef = MediaFileBreaker(Operation="convert",SrcPath=srcTextFile)
