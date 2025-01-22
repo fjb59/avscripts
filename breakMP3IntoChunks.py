@@ -209,9 +209,15 @@ class MediaFileBreaker:
     def getVideoLength(self,input_video):
         result = subprocess.run(
             ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1',
-             input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        catchit = result.stdout.decode("utf-8")
+        index = catchit.find("\r\n")
+        if index != -1:
+            finalResult = catchit[:index]
+        else:
+            finalResult = catchit
 
-        return float(result.stdout)
+        return float(finalResult)
     def writeToFile(self,tSourceFileName ="",withM3u=False):
         if not os.path.exists(self.dstFolder):
             os.makedirs(self.dstFolder,exist_ok=True)
@@ -412,6 +418,7 @@ class MediaFileBreaker:
         match self.operation:
             case "break":
                 self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
+                self.writeToFile()
 
             case "downsize":
                 self.downscale_images(self.srcPath,outputextension=".png")
