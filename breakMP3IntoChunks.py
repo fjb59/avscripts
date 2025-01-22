@@ -174,7 +174,7 @@ class MediaFileBreaker:
 
 
                     try:
-
+                        here = keys[itemindex]
                         nextName, nextTime = keys[itemindex+1], self.queue[keys[itemindex+1]]
                         if eTime >0:
                             endTime = eTime
@@ -186,8 +186,11 @@ class MediaFileBreaker:
 
                     except IndexError:
 
-                        startTime=self.time_to_milliseconds(itemTime)
-                        endTime = -1
+                        startTime= self.time_to_milliseconds(itemTime[0:3])
+                        if eTime > startTime:
+                            endTime = eTime
+                        else:
+                            endTime = -1
 
 
 
