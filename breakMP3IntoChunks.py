@@ -16,7 +16,13 @@ class modes(Enum):
 class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','FLAC','AAC')
     allowedVideoCodecs = ('AVI','MKV','MP4')
+    allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff')
     allowedOperations = ('break',"quickconvert", "convert")
+class errors(Enum):
+    fileNotFound = -1
+    pathNotFound = -2
+    resizeError = -3
+
     @property
     def source_codec(self ):
         return self.sCodec
@@ -113,7 +119,7 @@ class MediaFileBreaker:
                         else:
                             print(f"error: {self.srcPath} does not exist!")
                             myfile.close()
-                            exit(-1)
+                            exit(errors.fileNotFound)
                     case "OutputFolder":
                         if dstPath == "":
                             dstPath = param.rstrip()
@@ -287,7 +293,9 @@ class MediaFileBreaker:
     from PIL import Image
 
     def downscale_images(self,input_dir, output_dir="", percentage=50,outputextension=""):
-        validExtensions=('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff')
+        if percentage >99:
+            print ("you can only shrink images here, not grow them")
+            exit(errors.resizeError)
         if output_dir=="":
             output_dir=input_dir
         ratio = 100//percentage
@@ -308,7 +316,7 @@ class MediaFileBreaker:
                 outputextension = "."+outputextension
             output_path = os.path.join(output_dir, partfile+outputextension)
             # Check if the file is an image
-            if filename.lower().endswith(validExtensions):
+            if filename.lower().endswith(self.allowedImageExtensions):
                 try:
                     # Open the image
                     with Image.open(input_path) as img:
