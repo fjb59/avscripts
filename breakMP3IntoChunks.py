@@ -19,9 +19,9 @@ class errors(Enum):
     resizeError = -3
     invalidType = -4
 class MediaFileBreaker:
-    allowedAudioCodecs = ('WAV','MP3','FLAC','AAC')
-    allowedVideoCodecs = ('AVI','MKV','MP4')
-    allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff')
+    allowedAudioCodecs = ('WAV','MP3','mp3','FLAC','flac','AAC')
+    allowedVideoCodecs = ('AVI','MKV','MP4',"TS",'mpegts','mov,mp4,m4a,3gp,3g2,mj2')
+    allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
     allowedOperations = ('break',"quickconvert", "convert")
 
 
@@ -98,7 +98,7 @@ class MediaFileBreaker:
         if tDstPath is not None:
             dstPath = tDstPath
 
-        with open(tSrcTxt, 'r', encoding='utf-8') as myfile:
+        with (open(tSrcTxt, 'r', encoding='utf-8') as myfile):
             for line in myfile:
                 if line == "\n":
                     continue
@@ -108,16 +108,29 @@ class MediaFileBreaker:
                     continue
 
                 name, param = line.split(tDelimiter)
+                name = name.strip().lower()
 
-
-                match name.lower():
+                match name:
                     case "operation":
                         if param in self.allowedOperations:
                             self.operation = param
                     case "file":
-                        self.srcPath = param.rstrip()
+                        self.srcPath = param.strip()
                         if os.path.exists(self.srcPath):
-                            continue
+                            header, result = self.get_file_metadata(self.srcPath)
+                            if header == '[FORMAT]':
+                                self.formatNsme = result['format_name']
+                                self.formatLongName = result['format_long_name']
+                                self.duration = result['duration']
+                                self.bitRate = result['bit_rate']
+                                self.validFile = True
+                                continue
+                            else:
+                                myfile.close()
+                                print (f"File Type not recognised on {self.srcPath}")
+                                exit(errors.invalidType)
+
+
                         else:
                             print(f"error: {self.srcPath} does not exist!")
                             myfile.close()
@@ -131,6 +144,8 @@ class MediaFileBreaker:
                             self.destination_codec=param.rstrip()
                     case "prefix":
                         self.prefix=param.rstrip()
+                    case "audiochannel":
+                        continue
 
                     case _ :
                         match self.operation:
@@ -148,7 +163,7 @@ class MediaFileBreaker:
                                         eTime = -1
                                         hours, minutes, seconds = self.time_fromstring(sTime, precision="hhmmss")
                                         self.addToQueue(name, (hours, minutes, seconds))
-                                        pass
+
                                     case _:
                                         print (f"Invalid line: {line}")
                                         continue
@@ -217,24 +232,31 @@ class MediaFileBreaker:
             self.queue[tName]=tParam
             pass
 
+    def get_file_metadata(self,file_path):
+        # Get metadata using ffprobe
+        command = [
+            "ffprobe",
+            "-i", file_path,
+            "-show_format",
+            "-v", "quiet"
+        ]
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        metadata = {}
+        for line in result.stdout.splitlines():
+            if "=" in line:
+                key, value = line.split("=", 1)
+                metadata[key] = value.strip()
 
+        return result.stdout.split("\n")[0], metadata
 
     def getVideoLength(self,input_video):
-        result = subprocess.run(
-            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1',
-        input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        catchit = result.stdout.decode("utf-8")
-        index = catchit.find("\r\n")
-        if index != -1:
-            finalResult = catchit[:index]
-        else:
-            finalResult = catchit
-        pattern = r'^-?\d+(\.\d+)?$'  # Matches integers and decimals (positive/negative)
-        if re.match(pattern, finalResult):
 
-            return float(finalResult)
+        if self.duration ==0.0:
+            result, header  = self.get_file_metadata(input_video)
+
+
         else:
-            return -1.0
+            return float(self.duration)
     def writeToFile(self,tSourceFileName ="",withM3u=False):
         if not os.path.exists(self.dstFolder):
             os.makedirs(self.dstFolder,exist_ok=True)
@@ -287,7 +309,8 @@ class MediaFileBreaker:
                                 "-ss", f"{start:.3f}",
                                 "-to", f"{end_time:.3f}",
                                 "-c", "copy",
-                                dstFileName
+                                dstFileName,
+                                "-v", "quiet"
                             ],
                             check=True
                         )
@@ -422,6 +445,10 @@ class MediaFileBreaker:
         self.mediaType = modes.audio
         self.operation = Operation
         self.prefix = ""
+        self.formatNsme = ""
+        self.formatLongName = ""
+        self.duration = 0.0
+        self.bitRate = 0
 
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
 
