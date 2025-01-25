@@ -143,7 +143,7 @@ class MediaFileBreaker:
                         if (param.rstrip() in self.allowedVideoCodecs and self.mediaType == modes.video) or (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
                             self.destination_codec=param.rstrip()
                     case "prefix":
-                        self.prefix=param.rstrip()
+                        self.prefix=param.strip()
                     case "audiochannel":
                         continue
 
