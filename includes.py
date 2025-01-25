@@ -1,6 +1,6 @@
 import subprocess
 def get_media_file_type(file_path) -> str:
-    allowedCodecs = ('WAV', 'MP3', 'fLAC', 'AAC','MP4','MKV','AVI')
+    allowedCodecs = ('WAV', 'MP3', 'fLAC', 'AAC','MP4','MKV','AVI','TS')
     retVal: str = ""
     with open(file_path, 'rb') as file:
         header = file.read(13)
@@ -18,6 +18,8 @@ def get_media_file_type(file_path) -> str:
         retVal = "MKV"
     elif header[:4] == b'RIFF' and header[8:12] == b'AVI ':
         retVal = "AVI"
+    elif header[0] == 71:
+        retVal = "TS"
     else:
         retVal= ""
     file.close()

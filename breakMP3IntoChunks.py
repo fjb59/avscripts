@@ -13,15 +13,17 @@ from PIL import Image
 class modes(Enum):
     audio = 0
     video = 1
+class errors(Enum):
+    fileNotFound = -1
+    pathNotFound = -2
+    resizeError = -3
+    invalidType = -4
 class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','FLAC','AAC')
     allowedVideoCodecs = ('AVI','MKV','MP4')
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff')
     allowedOperations = ('break',"quickconvert", "convert")
-class errors(Enum):
-    fileNotFound = -1
-    pathNotFound = -2
-    resizeError = -3
+
 
     @property
     def source_codec(self ):
@@ -108,11 +110,11 @@ class errors(Enum):
                 name, param = line.split(tDelimiter)
 
 
-                match name:
-                    case "Operation":
+                match name.lower():
+                    case "operation":
                         if param in self.allowedOperations:
                             self.operation = param
-                    case "File":
+                    case "file":
                         self.srcPath = param.rstrip()
                         if os.path.exists(self.srcPath):
                             continue
@@ -120,13 +122,15 @@ class errors(Enum):
                             print(f"error: {self.srcPath} does not exist!")
                             myfile.close()
                             exit(errors.fileNotFound)
-                    case "OutputFolder":
+                    case "outputfolder":
                         if dstPath == "":
                             dstPath = param.rstrip()
                             continue
-                    case "OutputFormat":
+                    case "outputformat":
                         if (param.rstrip() in self.allowedVideoCodecs and self.mediaType == modes.video) or (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
                             self.destination_codec=param.rstrip()
+                    case "prefix":
+                        self.prefix=param.rstrip()
 
                     case _ :
                         match self.operation:
@@ -225,8 +229,12 @@ class errors(Enum):
             finalResult = catchit[:index]
         else:
             finalResult = catchit
+        pattern = r'^-?\d+(\.\d+)?$'  # Matches integers and decimals (positive/negative)
+        if re.match(pattern, finalResult):
 
-        return float(finalResult)
+            return float(finalResult)
+        else:
+            return -1.0
     def writeToFile(self,tSourceFileName ="",withM3u=False):
         if not os.path.exists(self.dstFolder):
             os.makedirs(self.dstFolder,exist_ok=True)
@@ -245,7 +253,7 @@ class errors(Enum):
 
 
 
-            dstFileName = os.path.join(self.dstFolder, name + "." + self.destination_codec)
+            dstFileName = os.path.join(self.dstFolder, self.prefix+name + "." + self.destination_codec)
 
             if not os.path.exists(dstFileName):
                 print(f"creating {dstFileName}")
@@ -263,6 +271,9 @@ class errors(Enum):
                 elif  self.mediaType ==modes.video:
 
                     total_duration = math.ceil(self.getVideoLength(fullPath))
+                    if total_duration == -1:
+                        print ("Cannot determine file length. File not supported")
+                        exit(errors.invalidType)
                     if end>0:
                         end_time = min(end, total_duration)
                     else:
@@ -410,6 +421,7 @@ class errors(Enum):
         self.OutputFile=""
         self.mediaType = modes.audio
         self.operation = Operation
+        self.prefix = ""
 
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
 
