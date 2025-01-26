@@ -30,5 +30,6 @@ if __name__ == "__main__":
             afb.go()
         case "convert":
             aef = MediaFileBreaker(Operation="convert",SrcPath=srcTextFile)
-        case "dumpFrames":
-            afb = MediaFileBreaker(Operation="dumpframes",SrcPath=srcTextFile)
+        case "dumpframes":
+            afb = MediaFileBreaker(Operation="dumpframes",SrcTextFile=srcTextFile)
+            afb.go()

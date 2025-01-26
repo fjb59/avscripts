@@ -34,6 +34,9 @@ class MediaFileBreaker:
             self.mediaType = modes.audio
         if tCodec in self.allowedVideoCodecs:
             self.mediaType = modes.video
+        else:
+            print ("Source Codec Not Supported")
+            return
 
         self.sCodec=tCodec
     @property
@@ -136,11 +139,10 @@ class MediaFileBreaker:
                             print(f"error: {self.srcPath} does not exist!")
                             myfile.close()
                             exit(errors.fileNotFound)
-                    case "Range":
-                        if self.operation in ("dumpframes"):
-                            pass
+
                     case "fps":
                         if self.operation in ("dumpframes"):
+                            self.fps=int(param.strip())
                             pass
                     case "outputfolder":
                         if dstPath == "":
@@ -159,7 +161,7 @@ class MediaFileBreaker:
 
                     case _ :
                         match self.operation:
-                            case "break":
+                            case "break" | "dumpframes":
                                 hyphens = param.count('-')
                                 match hyphens:
                                     case 1:
@@ -296,7 +298,8 @@ class MediaFileBreaker:
 
         else:
             return float(self.duration)
-    def writeToFile(self,tSourceFileName ="",withM3u=False):
+    def writeToFile(self,tSourceFileName ="",withM3u=False,asImages = False):
+        sections = []
         if not os.path.exists(self.dstFolder):
             os.makedirs(self.dstFolder,exist_ok=True)
         for item in self.writeQueue:
@@ -316,8 +319,8 @@ class MediaFileBreaker:
 
             dstFileName = os.path.join(self.dstFolder, self.prefix+name + "." + self.destination_codec)
 
-            if not os.path.exists(dstFileName):
-                print(f"creating {dstFileName}")
+            if not os.path.exists(dstFileName) or asImages:
+
                 if self.mediaType == modes.audio:
                     if durationInSeconds>0:
                         audio_segment = AudioSegment.from_file(fullPath, format=self.source_codec, start_second=start,duration=durationInSeconds)
@@ -340,28 +343,70 @@ class MediaFileBreaker:
                     else:
                         end_time = total_duration
 
+                    if not asImages:
+                        print(f"creating {dstFileName}")
+                        (
+                            subprocess.run(
+                                [
+                                    "ffmpeg",
+                                    "-i", fullPath,
+                                    "-ss", f"{start:.3f}",
+                                    "-to", f"{end_time:.3f}",
+                                    "-map", f"0:v:{self.videostream-1}",
+                                    "-map", f"0:a:{self.audiostream-1}",
+                                    "-c", "copy",
+                                    dstFileName,
+                                    "-v", "quiet"
+                                ],
+                                check=True
+                            )
+                        )
 
-                    (
-                        subprocess.run(
-                            [
+                    else:
+
+                        dstFileName = os.path.join(self.dstFolder, self.prefix + name + "_%05d.png")
+
+                        try:
+                            # FFmpeg command
+                            command = [
                                 "ffmpeg",
                                 "-i", fullPath,
                                 "-ss", f"{start:.3f}",
                                 "-to", f"{end_time:.3f}",
-                                "-map", f"0:v:{self.videostream-1}",
-                                "-map", f"0:a:{self.audiostream-1}",
-                                "-c", "copy",
-                                dstFileName,
-                                "-v", "quiet"
-                            ],
-                            check=True
-                        )
-                    )
+                                "-vf", f"fps={self.fps}",
+                                dstFileName  # Example: "frame_%04d.png"
+                            ]
 
-                    pass
+                            sections.append((start,end))
+                          #  subprocess.run(command, check=True)
+                            print("Frames have been extracted successfully.")
+                        except subprocess.CalledProcessError as e:
+                            print(f"Error running ffmpeg: {e}")
+                        except Exception as e:
+                            print(f"An unexpected error occurred: {e}")
 
             else:
                 print(f"{dstFileName} already exists. Skipping.")
+        if len (sections) >0 and asImages:
+            time_filters = "+".join([f"between(t,{start},{end})" for start, end in sections])
+            name =list(self.writeQueue[0].keys())[0]
+            dstFileName = os.path.join(self.dstFolder, self.prefix + name + "_%05d.png")
+            try:
+                command = [
+                    "ffmpeg",
+                    "-i", fullPath,
+                    "-vf", f"select='{time_filters}',fps={self.fps}",
+                    "-vsync", "vfr",  # Variable frame rate
+                    dstFileName
+                ]
+                subprocess.run(command, check=True)
+                print ("done")
+
+            except subprocess.CalledProcessError as e:
+                print(f"Error running ffmpeg: {e}")
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+
 
     # !/usr/bin/env python3
 
@@ -450,7 +495,9 @@ class MediaFileBreaker:
         # "fps=12"
         # dump / meganS_ % 04
         # d.png
+
         pass
+
 
     def getClip(self,filename,startFrame,endFrame,fps=30):
         pass
@@ -498,6 +545,7 @@ class MediaFileBreaker:
         self.formatName = ""
         self.formatLongName = ""
         self.duration = 0.0
+        self.fps = 0
         self.bitRate = 0
         self.audiostream = 1
         self.videostream = 1
@@ -523,6 +571,11 @@ class MediaFileBreaker:
                 self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
                 self.writeToFile()
 
+            case "dumpframes":
+                self.destination_codec = "PNG"
+                self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
+
+                self.writeToFile(asImages=True)
             case "downsize":
                 self.downscale_images(self.srcPath,outputextension=".png")
 
