@@ -348,7 +348,7 @@ class MediaFileBreaker:
                                 "-i", fullPath,
                                 "-ss", f"{start:.3f}",
                                 "-to", f"{end_time:.3f}",
-                                "-map", "0:v:0",
+                                "-map", f"0:v:{self.videostream-1}",
                                 "-map", f"0:a:{self.audiostream-1}",
                                 "-c", "copy",
                                 dstFileName,
@@ -500,6 +500,7 @@ class MediaFileBreaker:
         self.duration = 0.0
         self.bitRate = 0
         self.audiostream = 1
+        self.videostream = 1
         self.metaData = {}
 
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
