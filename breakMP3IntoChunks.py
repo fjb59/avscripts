@@ -22,7 +22,7 @@ class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','mp3','FLAC','flac','AAC')
     allowedVideoCodecs = ('AVI','MKV','MP4',"TS",'mpegts','mov,mp4,m4a,3gp,3g2,mj2')
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
-    allowedOperations = ('break',"quickconvert", "convert")
+    allowedOperations = ('break',"quickconvert", "convert","dumpframes")
 
 
     @property
@@ -117,9 +117,10 @@ class MediaFileBreaker:
                     case "file":
                         self.srcPath = param.strip()
                         if os.path.exists(self.srcPath):
-                            header, result = self.get_file_metadata(self.srcPath)
+                            header, result = self.get_file_metadata(self.srcPath.strip())
                             if header == '[FORMAT]':
-                                self.formatNsme = result['format_name']
+                                self.metaData =result
+                                self.formatName = result['format_name']
                                 self.formatLongName = result['format_long_name']
                                 self.duration = result['duration']
                                 self.bitRate = result['bit_rate']
@@ -129,12 +130,18 @@ class MediaFileBreaker:
                                 myfile.close()
                                 print (f"File Type not recognised on {self.srcPath}")
                                 exit(errors.invalidType)
-
+                            del result
 
                         else:
                             print(f"error: {self.srcPath} does not exist!")
                             myfile.close()
                             exit(errors.fileNotFound)
+                    case "Range":
+                        if self.operation in ("dumpframes"):
+                            pass
+                    case "fps":
+                        if self.operation in ("dumpframes"):
+                            pass
                     case "outputfolder":
                         if dstPath == "":
                             dstPath = param.rstrip()
@@ -144,8 +151,11 @@ class MediaFileBreaker:
                             self.destination_codec=param.rstrip()
                     case "prefix":
                         self.prefix=param.strip()
-                    case "audiochannel":
-                        continue
+                    case "audiostream":
+                        audios = int(param.strip())
+                        if audios > 0 and audios <= self.metaData["AudioStreams"]:
+                            self.audiostream = audios
+
 
                     case _ :
                         match self.operation:
@@ -240,19 +250,48 @@ class MediaFileBreaker:
             "-show_format",
             "-v", "quiet"
         ]
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        try:
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+        except Exception as e:
+            print(f"Error: {e}")
+
         metadata = {}
         for line in result.stdout.splitlines():
             if "=" in line:
                 key, value = line.split("=", 1)
                 metadata[key] = value.strip()
 
-        return result.stdout.split("\n")[0], metadata
+
+        header =  result.stdout.split("\n")[0]
+        # get audio
+
+        try:
+            # Run ffprobe to get the number of audio channels
+            command = [
+            "ffprobe",
+            "-i", file_path,                   # Input file
+            "-select_streams", "a",            # Select only audio streams
+            "-show_entries", "stream=channels",# Show the 'channels' field
+            "-of", "default=noprint_wrappers=1:nokey=1", # Simplified output format
+            "-v", "error"                      # Suppress unnecessary output
+
+            ]
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            audio_streams = result.stdout.strip().splitlines()
+            metadata["AudioStreams"] = len(audio_streams)
+
+            #return int(channels) if channels.isdigit() else None
+        except Exception as e:
+            print(f"Error: {e}")
+
+        #
+
+        return header, metadata
 
     def getVideoLength(self,input_video):
 
         if self.duration ==0.0:
-            result, header  = self.get_file_metadata(input_video)
+            self.metaData, header  = self.get_file_metadata(input_video)
 
 
         else:
@@ -301,6 +340,7 @@ class MediaFileBreaker:
                     else:
                         end_time = total_duration
 
+
                     (
                         subprocess.run(
                             [
@@ -308,6 +348,8 @@ class MediaFileBreaker:
                                 "-i", fullPath,
                                 "-ss", f"{start:.3f}",
                                 "-to", f"{end_time:.3f}",
+                                "-map", "0:v:0",
+                                "-map", f"0:a:{self.audiostream-1}",
                                 "-c", "copy",
                                 dstFileName,
                                 "-v", "quiet"
@@ -398,8 +440,16 @@ class MediaFileBreaker:
             audio_wave.wait_done()
 
 
-    def export_frames(self,infile,outfolder,fileextstartframe=0,endframe=0,fpsw=30, quality=1):
+    def export_frames(self,infile,outfolder,frames =[00,00],fpsw=30, quality=1):
         #ffmpeg -ss 00:09:40 -i Part1.1.MP4 -t 00:09:48 -q:v 1 -vf "fps=18" images/output_mp4
+        # ffmpeg - ss
+        # 00: 06:30 - to
+        # 00: 0
+        # 8: 14 - i
+        # "Subservience.2024.1080p.WEBRip.x264.AAC5.1-[YTS.MX].mp4" - vf
+        # "fps=12"
+        # dump / meganS_ % 04
+        # d.png
         pass
 
     def getClip(self,filename,startFrame,endFrame,fps=30):
@@ -445,10 +495,12 @@ class MediaFileBreaker:
         self.mediaType = modes.audio
         self.operation = Operation
         self.prefix = ""
-        self.formatNsme = ""
+        self.formatName = ""
         self.formatLongName = ""
         self.duration = 0.0
         self.bitRate = 0
+        self.audiostream = 1
+        self.metaData = {}
 
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
 

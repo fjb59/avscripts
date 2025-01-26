@@ -28,5 +28,7 @@ if __name__ == "__main__":
             pass
             afb = MediaFileBreaker(Operation="downsize",SrcPath=srcTextFile)
             afb.go()
-        case convert:
+        case "convert":
             aef = MediaFileBreaker(Operation="convert",SrcPath=srcTextFile)
+        case "dumpFrames":
+            afb = MediaFileBreaker(Operation="dumpframes",SrcPath=srcTextFile)
