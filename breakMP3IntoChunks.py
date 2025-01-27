@@ -365,7 +365,7 @@ class MediaFileBreaker:
                     else:
 
                         dstFileName = os.path.join(self.dstFolder, self.prefix + name + "_%05d.png")
-
+                        print (f"processing {dstFileName}" )
                         try:
                             # FFmpeg command
                             command = [
@@ -373,12 +373,13 @@ class MediaFileBreaker:
                                 "-i", fullPath,
                                 "-ss", f"{start:.3f}",
                                 "-to", f"{end_time:.3f}",
+                                "-v", "quiet",
                                 "-vf", f"fps={self.fps}",
                                 dstFileName  # Example: "frame_%04d.png"
                             ]
 
-                            sections.append((start,end))
-                          #  subprocess.run(command, check=True)
+                          #  sections.append((start,end))
+                            subprocess.run(command, check=True)
                             print("Frames have been extracted successfully.")
                         except subprocess.CalledProcessError as e:
                             print(f"Error running ffmpeg: {e}")
@@ -387,26 +388,27 @@ class MediaFileBreaker:
 
             else:
                 print(f"{dstFileName} already exists. Skipping.")
-        if len (sections) >0 and asImages:
-            time_filters = "+".join([f"between(t,{start},{end})" for start, end in sections])
-            name =list(self.writeQueue[0].keys())[0]
-            dstFileName = os.path.join(self.dstFolder, self.prefix + name + "_%05d.png")
-            try:
-                command = [
-                    "ffmpeg",
-                    "-i", fullPath,
-                    "-vf", f"select='{time_filters}',fps={self.fps}",
-                    "-vsync", "vfr",  # Variable frame rate
-                    dstFileName
-                ]
-                subprocess.run(command, check=True)
-                print ("done")
-
-            except subprocess.CalledProcessError as e:
-                print(f"Error running ffmpeg: {e}")
-            except Exception as e:
-                print(f"An unexpected error occurred: {e}")
-
+        # if len (sections) >0 and asImages:
+        #     time_filters = "+".join([f"between(t,{start},{end})" for start, end in sections])
+        #     name =list(self.writeQueue[0].keys())[0]
+        #     dstFileName = os.path.join(self.dstFolder, self.prefix + name + "_%05d.png")
+        #     try:
+        #         command = [
+        #             "ffmpeg",
+        #             "-i", fullPath,
+        #             "-vf", f"select='{time_filters}',fps={self.fps}",
+        #             "-vsync", "vfr",
+        #             "-v", "quiet", # no reporting
+        #             dstFileName
+        #         ]
+        #         subprocess.run(command, check=True)
+        #         print ("done")
+        #
+        #     except subprocess.CalledProcessError as e:
+        #         print(f"Error running ffmpeg: {e}")
+        #     except Exception as e:
+        #         print(f"An unexpected error occurred: {e}")
+        #
 
     # !/usr/bin/env python3
 
