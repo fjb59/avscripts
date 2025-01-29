@@ -414,8 +414,7 @@ class MediaFileBreaker:
 
     # !/usr/bin/env python3
 
-    import os
-    from PIL import Image
+
 
     def downscale_images(self,input_dir, output_dir="", percentage=50,outputextension=""):
         if percentage >99:
