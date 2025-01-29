@@ -365,6 +365,8 @@ class MediaFileBreaker:
                     else:
 
                         dstFileName = os.path.join(self.dstFolder, self.prefix + name + "_%05d.png")
+                        if self.fps==0:
+                            self.fps = 30
                         print (f"processing {dstFileName}" )
                         try:
                             # FFmpeg command
