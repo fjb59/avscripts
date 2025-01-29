@@ -1,5 +1,6 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider, QHBoxLayout, \
+    QTableWidget
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import QUrl, Qt
@@ -27,6 +28,10 @@ class VideoPlayer(QMainWindow):
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.stop_video)
 
+        #tag in/ out buttons
+        self.tagin_button = QPushButton("[")
+        self.tagout_button = QPushButton("]")
+
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.sliderMoved.connect(self.set_position)
 
@@ -34,13 +39,31 @@ class VideoPlayer(QMainWindow):
         self.media_player.setSource(QUrl.fromLocalFile(self.videoSource))
         self.media_player.positionChanged.connect(self.position_changed)
         self.media_player.durationChanged.connect(self.duration_changed)
+        self.table = QTableWidget(0, 2)
+        self.table.setHorizontalHeaderLabels(["Mark In", "Mark Out"])
 
-        layout = QVBoxLayout()
+        layout =QVBoxLayout()
+
         layout.addWidget(self.video_widget)
-        layout.addWidget(self.start_button)
-        layout.addWidget(self.pause_button)
-        layout.addWidget(self.stop_button)
         layout.addWidget(self.slider)
+
+        Buttonlayout = QHBoxLayout()
+        TagButtonLayout = QHBoxLayout()
+        TagButtonLayout.addWidget(self.tagin_button)
+        TagButtonLayout.addWidget(self.tagout_button)
+
+        Buttonlayout.addWidget(self.start_button)
+        Buttonlayout.addWidget(self.pause_button)
+        Buttonlayout.addWidget(self.stop_button)
+
+
+        layout.addLayout(Buttonlayout)
+        layout.addLayout(TagButtonLayout)
+
+        tableLayout =QVBoxLayout()
+        tableLayout.addWidget(self.table)
+        layout.addLayout(tableLayout)
+
 
         container = QWidget()
         container.setLayout(layout)
@@ -54,6 +77,10 @@ class VideoPlayer(QMainWindow):
 
     def stop_video(self):
         self.media_player.stop()
+    def tag_in(self):
+        pass
+    def tag_out(self):
+        pass
 
     def set_position(self, position):
         self.media_player.setPosition(position)
