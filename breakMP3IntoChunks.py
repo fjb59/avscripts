@@ -21,6 +21,7 @@ class errors(Enum):
 class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','mp3','FLAC','flac','AAC')
     allowedVideoCodecs = ('AVI','MKV','MP4',"TS")
+    associatedCodecs = {'AVI':'mpeg4','MP4':'h264','MKV':'hevc'}
 
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
     allowedOperations = ('break',"quickconvert", "convert","dumpframes")
@@ -51,7 +52,10 @@ class MediaFileBreaker:
     @property
     def override_codec(self):
         return self.override_codec
-    override_codec.setter
+
+
+    def associatedCodec(self, tCodec):
+        return [k for k, v in self.associatedCodecs.items() if v == tCodec]
     def override_codec(self,isOveridable):
         self.override_codec = isOveridable
     def time_to_milliseconds(self, tTime):
