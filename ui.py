@@ -49,8 +49,13 @@ class VideoPlayer(QMainWindow):
         Buttonlayout.addWidget(self.stop_button)
 
         layout.addLayout(Buttonlayout)
-        layout.addWidget(self.video_widget)
+        video_player_layout = QVBoxLayout()
+        self.video_widget.setFixedSize(640,480)
+
+        layout.addWidget(self.video_widget, alignment=Qt.AlignmentFlag.AlignHCenter)
+
         layout.addWidget(self.slider)
+
 
 
         TagButtonLayout = QHBoxLayout()
@@ -62,7 +67,7 @@ class VideoPlayer(QMainWindow):
 
         tableLayout =QVBoxLayout()
         tableLayout.addWidget(self.table)
-        #layout.addLayout(tableLayout)
+        layout.addLayout(tableLayout)
 
 
         container = QWidget()
