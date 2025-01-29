@@ -20,7 +20,7 @@ class errors(Enum):
     invalidType = -4
 class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','mp3','FLAC','flac','AAC')
-    allowedVideoCodecs = ('AVI','MKV',{'MP4','mov,mp4,m4a,3gp,3g2,mj2'},{"TS",'mpegts'},)
+    allowedVideoCodecs = ('AVI','MKV','MP4',"TS")
 
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
     allowedOperations = ('break',"quickconvert", "convert","dumpframes")
@@ -554,7 +554,8 @@ class MediaFileBreaker:
         self.audiostream = 1
         self.videostream = 1
         self.metaData = {}
-
+        self.sCodec = ""
+        self.dCodec = ""
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
 
         if sCodec in self.allowedAudioCodecs:
