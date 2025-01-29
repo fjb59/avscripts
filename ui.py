@@ -43,26 +43,26 @@ class VideoPlayer(QMainWindow):
         self.table.setHorizontalHeaderLabels(["Mark In", "Mark Out"])
 
         layout =QVBoxLayout()
-
-        layout.addWidget(self.video_widget)
-        layout.addWidget(self.slider)
-
         Buttonlayout = QHBoxLayout()
-        TagButtonLayout = QHBoxLayout()
-        TagButtonLayout.addWidget(self.tagin_button)
-        TagButtonLayout.addWidget(self.tagout_button)
-
         Buttonlayout.addWidget(self.start_button)
         Buttonlayout.addWidget(self.pause_button)
         Buttonlayout.addWidget(self.stop_button)
 
-
         layout.addLayout(Buttonlayout)
+        layout.addWidget(self.video_widget)
+        layout.addWidget(self.slider)
+
+
+        TagButtonLayout = QHBoxLayout()
+        TagButtonLayout.addWidget(self.tagin_button)
+        TagButtonLayout.addWidget(self.tagout_button)
+
+
         layout.addLayout(TagButtonLayout)
 
         tableLayout =QVBoxLayout()
         tableLayout.addWidget(self.table)
-        layout.addLayout(tableLayout)
+        #layout.addLayout(tableLayout)
 
 
         container = QWidget()
