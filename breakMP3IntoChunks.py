@@ -5,7 +5,7 @@ from pydub import AudioSegment
 import simpleaudio as sa
 import ffmpeg
 import subprocess
-from includes import get_media_file_type
+#from includes import get_media_file_type
 from enum import Enum
 import re
 from PIL import Image
@@ -21,23 +21,49 @@ class errors(Enum):
 class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','mp3','FLAC','flac','AAC')
     allowedVideoCodecs = ('AVI','MKV','MP4',"TS")
-    associatedCodecs = {'AVI':'mpeg4','MP4':'h264','MKV':'hevc'}
+    associatedCodecs = {'AVI':'mpeg4','MP4':'h264','MKV':'hevc','mp3':'MP2/3 (MPEG audio layer 2/3)'}
 
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
     allowedOperations = ('break',"quickconvert", "convert","dumpframes")
 
 
     @property
+    def sourcePath(self) -> str:
+        return self.srcPath
+    @sourcePath.setter
+    def sourcePath(self,lPath):
+        if os.path.exists(lPath):
+
+            header, result = self.get_file_metadata(lPath.strip())
+            if header == '[FORMAT]':
+                self.metaData = result
+                desired_codec = result['format_name']
+                if self.associatedCodecs[desired_codec] or self.associatedCodec(desired_codec):
+                    self.sCodec = result['format_name']
+                self.formatLongName = result['format_long_name']
+                self.duration = result['duration']
+                self.bitRate = result['bit_rate']
+                self.validFile = True
+                self.srcPath = lPath
+            else:
+                print (f"invalid file format on {lPath}")
+
+        else:
+            self.srcPath=""
+
+    @property
     def source_codec(self ):
         return self.sCodec
     @source_codec.setter
-    def source_codec(self,tCodec="Mp3"):
+    def source_codec(self,tCodec):
+        if tCodec ==None:
+            return
         if tCodec in self.allowedAudioCodecs:
             self.mediaType = modes.audio
         if tCodec in self.allowedVideoCodecs:
             self.mediaType = modes.video
         else:
-            print ("Source Codec Not Supported")
+            print (f"Source {tCodec} Codec Not Supported")
             return
 
         self.sCodec=tCodec
@@ -123,22 +149,11 @@ class MediaFileBreaker:
                         if param in self.allowedOperations:
                             self.operation = param
                     case "file":
-                        self.srcPath = param.strip()
-                        if os.path.exists(self.srcPath):
-                            header, result = self.get_file_metadata(self.srcPath.strip())
-                            if header == '[FORMAT]':
-                                self.metaData =result
-                                self.formatName = result['format_name']
-                                self.formatLongName = result['format_long_name']
-                                self.duration = result['duration']
-                                self.bitRate = result['bit_rate']
-                                self.validFile = True
+                        self.sourcePath = param.strip()
+                        if os.path.exists(self.sourcePath):
+
                                 continue
-                            else:
-                                myfile.close()
-                                print (f"File Type not recognised on {self.srcPath}")
-                                exit(errors.invalidType)
-                            del result
+
 
                         else:
                             print(f"error: {self.srcPath} does not exist!")
@@ -316,9 +331,11 @@ class MediaFileBreaker:
             else :
                 durationInSeconds =0
             fullPath = os.path.join(self.rootFolder, self.srcPath)
-            lCodec = get_media_file_type(fullPath)
-            self.source_codec =lCodec
-            self.destination_codec = lCodec
+
+            #lCodec = get_media_file_type(fullPath)
+            #self.source_codec =lCodec
+            if self.destination_codec == None:
+                self.destination_codec = self.source_codec
 
 
 
@@ -334,7 +351,7 @@ class MediaFileBreaker:
 
                     if not os.path.exists(self.dstFolder):
                         os.makedirs(self.dstFolder)
-
+                    print (f"Exporting {dstFileName}")
                     audio_segment.export(dstFileName,format=self.destination_codec)
                     del audio_segment
                 elif  self.mediaType ==modes.video:
@@ -542,7 +559,7 @@ class MediaFileBreaker:
         process.wait()  # Wait for the process to finish
         return process.returncode
 
-    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter='=',sCodec="MP3", dCodec="mp3"):
+    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter='=',sCodec=None, dCodec=None):
         self.queue = {}
         self.writeQueue = []
         self.srcPath=SrcPath
@@ -562,14 +579,14 @@ class MediaFileBreaker:
         self.dCodec = ""
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
 
-        if sCodec in self.allowedAudioCodecs:
+        if sCodec in self.allowedAudioCodecs or sCodec in self.allowedVideoCodecs:
             self.source_codec = sCodec
         else:
-            self.source_codec = "MP3"
-        if dCodec in self.allowedAudioCodecs:
+            self.source_codec = None
+        if dCodec in self.allowedAudioCodecs or dCodec in self.allowedVideoCodecs:
             self.destination_codec = dCodec
         else:
-            self.destination_codec = "MP3"
+            self.destination_codec = None
 
         self.rootFolder = os.path.dirname(self.srcTextFile)
 
