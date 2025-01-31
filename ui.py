@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider, QHBoxLayout, \
-    QTableWidget
+    QTableWidget, QTextEdit
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import QUrl, Qt
@@ -45,6 +45,10 @@ class VideoPlayer(QMainWindow):
 
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.sliderMoved.connect(self.set_position)
+        self.playheadTracker = QTextEdit("00:00:00")
+        self.playheadTracker.setFixedSize(88,24)
+        self.playheadTracker.setReadOnly(True)
+
 
 
         self.media_player.setVideoOutput(self.video_widget)
@@ -71,7 +75,10 @@ class VideoPlayer(QMainWindow):
 
         layout.addWidget(self.video_widget, alignment=Qt.AlignmentFlag.AlignHCenter,stretch=3)
 
-        layout.addWidget(self.slider)
+        playheadLayer = QHBoxLayout()
+        playheadLayer.addWidget(self.slider)
+        playheadLayer.addWidget(self.playheadTracker)
+        layout.addLayout(playheadLayer)
 
 
 
@@ -115,7 +122,7 @@ class VideoPlayer(QMainWindow):
         self.slider.setValue(position)
         self.timeToDisplay = self.convert_millisecondsToString(position)
         if self.timeToDisplay != self.lastTimeToDisplay:
-            print (self.timeToDisplay)
+            self.playheadTracker.setText(self.timeToDisplay)
             self.lastTimeToDisplay = self.timeToDisplay
 
     def duration_changed(self, duration):
@@ -125,8 +132,9 @@ class VideoPlayer(QMainWindow):
         ms = ss*1000
         (self.media_player.setPosition(max(0, self.media_player.position() - ms)))  # Rewind by 5 seconds
 
-    def fast_forward(self):
-        self.media_player.setPosition(min(self.media_player.duration(), self.media_player.position() + 10000))
+    def fast_forward(self,ff=10):
+        ms = ff*1000
+        self.media_player.setPosition(min(self.media_player.duration(), self.media_player.position() + ms))
 
     def convert_millisecondsToString(self,ms):
         seconds = (ms // 1000) % 60
