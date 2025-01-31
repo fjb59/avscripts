@@ -9,6 +9,7 @@ from PyQt6.QtCore import QUrl, Qt
 class VideoPlayer(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.lastTimeToDisplay = None
         self.videoSource = "/Users/frank/Movies/TV/sapphire and steel/Assignment_1/Part1.1.MP4"
 
         self.setWindowTitle("Video Player")
@@ -19,14 +20,24 @@ class VideoPlayer(QMainWindow):
         self.audioOutput = QAudioOutput()
         self.media_player.setAudioOutput(self.audioOutput)
 
-        self.start_button = QPushButton("Start")
+        self.frb_button = QPushButton("<<<")
+        self.frb_button.clicked.connect(lambda : self.rewind(30))
+        self.rb_button = QPushButton("<<")
+        self.rb_button.clicked.connect(lambda: self.rewind(10))
+
+        self.start_button = QPushButton("> ||")
         self.start_button.clicked.connect(self.start_video)
 
-        self.pause_button = QPushButton("Pause")
-        self.pause_button.clicked.connect(self.pause_video)
+
 
         self.stop_button = QPushButton("Stop")
         self.stop_button.clicked.connect(self.stop_video)
+
+        self.fb_button = QPushButton(">>")
+        self.fb_button.clicked.connect(lambda: self.fast_forward(10))
+        self.ffb_button = QPushButton(">>>")
+        self.ffb_button.clicked.connect(lambda: self.fast_forward(30))
+
 
         #tag in/ out buttons
         self.tagin_button = QPushButton("[")
@@ -35,24 +46,30 @@ class VideoPlayer(QMainWindow):
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.sliderMoved.connect(self.set_position)
 
+
         self.media_player.setVideoOutput(self.video_widget)
         self.media_player.setSource(QUrl.fromLocalFile(self.videoSource))
         self.media_player.positionChanged.connect(self.position_changed)
         self.media_player.durationChanged.connect(self.duration_changed)
-        self.table = QTableWidget(0, 2)
-        self.table.setHorizontalHeaderLabels(["Mark In", "Mark Out"])
+        self.table = QTableWidget(0, 3)
+        self.table.setHorizontalHeaderLabels(["Name","Mark In", "Mark Out"])
 
         layout =QVBoxLayout()
         Buttonlayout = QHBoxLayout()
+        Buttonlayout.addWidget(self.frb_button)
+        Buttonlayout.addWidget(self.rb_button)
+
         Buttonlayout.addWidget(self.start_button)
-        Buttonlayout.addWidget(self.pause_button)
         Buttonlayout.addWidget(self.stop_button)
+        Buttonlayout.addWidget(self.fb_button)
+        Buttonlayout.addWidget(self.ffb_button)
+
 
         layout.addLayout(Buttonlayout)
         video_player_layout = QVBoxLayout()
-        self.video_widget.setFixedSize(640,480)
+        self.video_widget.setFixedSize(800,600)
 
-        layout.addWidget(self.video_widget, alignment=Qt.AlignmentFlag.AlignHCenter)
+        layout.addWidget(self.video_widget, alignment=Qt.AlignmentFlag.AlignHCenter,stretch=3)
 
         layout.addWidget(self.slider)
 
@@ -75,13 +92,17 @@ class VideoPlayer(QMainWindow):
         self.setCentralWidget(container)
 
     def start_video(self):
-        self.media_player.play()
+        if self.media_player.isPlaying():
+            self.media_player.pause()
+        else:
+            self.media_player.play()
 
     def pause_video(self):
         self.media_player.pause()
 
     def stop_video(self):
         self.media_player.stop()
+
     def tag_in(self):
         pass
     def tag_out(self):
@@ -92,9 +113,26 @@ class VideoPlayer(QMainWindow):
 
     def position_changed(self, position):
         self.slider.setValue(position)
+        self.timeToDisplay = self.convert_millisecondsToString(position)
+        if self.timeToDisplay != self.lastTimeToDisplay:
+            print (self.timeToDisplay)
+            self.lastTimeToDisplay = self.timeToDisplay
 
     def duration_changed(self, duration):
         self.slider.setRange(0, duration)
+
+    def rewind(self,ss=10):
+        ms = ss*1000
+        (self.media_player.setPosition(max(0, self.media_player.position() - ms)))  # Rewind by 5 seconds
+
+    def fast_forward(self):
+        self.media_player.setPosition(min(self.media_player.duration(), self.media_player.position() + 10000))
+
+    def convert_millisecondsToString(self,ms):
+        seconds = (ms // 1000) % 60
+        minutes = (ms // (1000 * 60)) % 60
+        hours = (ms // (1000 * 60 * 60))
+        return f"{hours}:{minutes}:{seconds}"
 
 
 if __name__ == "__main__":
