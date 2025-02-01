@@ -21,7 +21,7 @@ class errors(Enum):
 class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','mp3','FLAC','flac','AAC')
     allowedVideoCodecs = ('AVI','MKV','MP4',"TS")
-    associatedCodecs = {'AVI':'mpeg4','MP4':'h264','MKV':'hevc','mp3':'MP2/3 (MPEG audio layer 2/3)'}
+    associatedCodecs = {'AVI':'mpeg4','MP4':'h264','MKV':'hevc','TS':'mpegts','mp3':'MP2/3 (MPEG audio layer 2/3)'}
 
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
     allowedOperations = ('break',"quickconvert", "convert","dumpframes")
@@ -38,7 +38,7 @@ class MediaFileBreaker:
             if header == '[FORMAT]':
                 self.metaData = result
                 desired_codec = result['format_name']
-                if self.associatedCodecs[desired_codec] or self.associatedCodec(desired_codec):
+                if desired_codec in self.associatedCodecs or self.associatedCodec(desired_codec):
                     self.sCodec = result['format_name']
                 self.formatLongName = result['format_long_name']
                 self.duration = result['duration']
@@ -144,7 +144,7 @@ class MediaFileBreaker:
                 name, param = line.split(tDelimiter)
                 name = name.strip().lower()
 
-                match name:
+                match name.lower():
                     case "operation":
                         if param in self.allowedOperations:
                             self.operation = param
@@ -168,9 +168,13 @@ class MediaFileBreaker:
                         if dstPath == "":
                             dstPath = param.rstrip()
                             continue
-                    case "outputformat":
+                    case "videocodecdest":
                         if (param.rstrip() in self.allowedVideoCodecs and self.mediaType == modes.video) or (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
-                            self.destination_codec=param.rstrip()
+                            self.destination_codec = param.rstrip()
+                    case "audioencoder":
+                        continue
+                    case "videoencoder":
+                        continue
                     case "prefix":
                         self.prefix=param.strip()
                     case "audiostream":
