@@ -3,7 +3,6 @@ import os
 
 from pydub import AudioSegment
 import simpleaudio as sa
-import ffmpeg
 import subprocess
 #from includes import get_media_file_type
 from enum import Enum
@@ -40,6 +39,14 @@ class MediaFileBreaker:
                 desired_codec = result['format_name']
                 if desired_codec in self.associatedCodecs or self.associatedCodec(desired_codec):
                     self.sCodec = result['format_name']
+                    foundCodec=self.associatedCodec(desired_codec)[0] if len (self.associatedCodec(desired_codec)) > 0 else None
+                    if foundCodec in self.allowedVideoCodecs:
+                        self.mediaType=modes.video
+                    elif foundCodec in self.allowedAudioCodecs:
+                        self.mediaType=modes.audio
+                    else:
+                        print("unknown type")
+                        exit(errors.invalidType)
                 self.formatLongName = result['format_long_name']
                 self.duration = result['duration']
                 self.bitRate = result['bit_rate']
@@ -578,6 +585,8 @@ class MediaFileBreaker:
         self.bitRate = 0
         self.audiostream = 1
         self.videostream = 1
+        self.videoEncoder = "copy"
+        self.audioEncoder = "copy"
         self.metaData = {}
         self.sCodec = ""
         self.dCodec = ""
