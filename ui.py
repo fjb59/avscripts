@@ -6,19 +6,23 @@ from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import QUrl, Qt
 
 
+
+
 class VideoPlayer(QMainWindow):
     def __init__(self):
         super().__init__()
         self.lastTimeToDisplay = None
-        self.videoSource = "/Users/frank/Movies/TV/sapphire and steel/Assignment_1/Part1.1.MP4"
+        self.videoSource = ""
 
         self.setWindowTitle("Video Player")
         self.setGeometry(100, 100, 1024, 768)
+        self.setAcceptDrops(True)
 
         self.media_player = QMediaPlayer()
         self.video_widget = QVideoWidget()
         self.audioOutput = QAudioOutput()
         self.media_player.setAudioOutput(self.audioOutput)
+       
 
         self.frb_button = QPushButton("<<<")
         self.frb_button.clicked.connect(lambda : self.rewind(30))
@@ -41,7 +45,10 @@ class VideoPlayer(QMainWindow):
 
         #tag in/ out buttons
         self.tagin_button = QPushButton("[")
+        self.tagin_button.setFixedSize(32,32)
+
         self.tagout_button = QPushButton("]")
+        self.tagout_button.setFixedSize(32,32)
 
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.sliderMoved.connect(self.set_position)
@@ -83,8 +90,8 @@ class VideoPlayer(QMainWindow):
 
 
         TagButtonLayout = QHBoxLayout()
-        TagButtonLayout.addWidget(self.tagin_button)
-        TagButtonLayout.addWidget(self.tagout_button)
+        TagButtonLayout.addWidget(self.tagin_button,alignment=Qt.AlignmentFlag.AlignLeft, stretch=3)
+        TagButtonLayout.addWidget(self.tagout_button,alignment=Qt.AlignmentFlag.AlignRight, stretch=3)
 
 
         layout.addLayout(TagButtonLayout)
@@ -136,6 +143,19 @@ class VideoPlayer(QMainWindow):
         ms = ff*1000
         self.media_player.setPosition(min(self.media_player.duration(), self.media_player.position() + ms))
 
+    def load_video(self, file_path):
+        self.media_player.setSource(QUrl.fromLocalFile(file_path))
+        self.media_player.play()
+        self.setWindowTitle(file_path)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        file_path = event.mimeData().urls()[0].toLocalFile()
+        if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.wmv')):
+            self.load_video(file_path)
     def convert_millisecondsToString(self,ms):
         seconds = (ms // 1000) % 60
         minutes = (ms // (1000 * 60)) % 60
