@@ -157,10 +157,11 @@ class VideoPlayer(QMainWindow):
         if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.wmv')):
             self.load_video(file_path)
     def convert_millisecondsToString(self,ms):
+        centiseconds =(ms // 100) %10
         seconds = (ms // 1000) % 60
         minutes = (ms // (1000 * 60)) % 60
         hours = (ms // (1000 * 60 * 60))
-        return f"{hours}:{minutes}:{seconds}"
+        return f"{hours}:{minutes}:{seconds}:{centiseconds}"
 
 
 if __name__ == "__main__":
