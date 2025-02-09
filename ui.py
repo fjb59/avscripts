@@ -10,6 +10,7 @@ from PyQt6.QtCore import QUrl, Qt
 
 class VideoPlayer(QMainWindow):
     def __init__(self):
+        buttonHeight=32
         super().__init__()
         self.lastTimeToDisplay = None
         self.videoSource = ""
@@ -25,35 +26,43 @@ class VideoPlayer(QMainWindow):
        
 
         self.frb_button = QPushButton("<<<")
+        self.frb_button.setFixedSize(40,buttonHeight)
         self.frb_button.clicked.connect(lambda : self.rewind(30))
         self.rb_button = QPushButton("<<")
+        self.rb_button.setFixedSize(40,buttonHeight)
         self.rb_button.clicked.connect(lambda: self.rewind(10))
 
         self.start_button = QPushButton("> ||")
+        self.start_button.setFixedSize(40,buttonHeight)
         self.start_button.clicked.connect(self.start_video)
 
 
 
         self.stop_button = QPushButton("Stop")
+        self.stop_button.setFixedSize(48,buttonHeight)
         self.stop_button.clicked.connect(self.stop_video)
 
         self.fb_button = QPushButton(">>")
+        self.fb_button.setFixedSize(40,buttonHeight)
         self.fb_button.clicked.connect(lambda: self.fast_forward(10))
         self.ffb_button = QPushButton(">>>")
+        self.ffb_button.setFixedSize(40,buttonHeight)
         self.ffb_button.clicked.connect(lambda: self.fast_forward(30))
 
 
         #tag in/ out buttons
         self.tagin_button = QPushButton("[")
-        self.tagin_button.setFixedSize(32,32)
+        self.tagin_button.setFixedSize(32,buttonHeight)
 
         self.tagout_button = QPushButton("]")
-        self.tagout_button.setFixedSize(32,32)
+        self.tagout_button.setFixedSize(32,buttonHeight)
 
         self.slider = QSlider(Qt.Orientation.Horizontal)
+        self.slider.setFixedSize(800,24)
+
         self.slider.sliderMoved.connect(self.set_position)
-        self.playheadTracker = QTextEdit("00:00:00")
-        self.playheadTracker.setFixedSize(88,24)
+        self.playheadTracker = QTextEdit("00:00:00:0")
+        self.playheadTracker.setFixedSize(96,24)
         self.playheadTracker.setReadOnly(True)
 
 
@@ -76,6 +85,7 @@ class VideoPlayer(QMainWindow):
         Buttonlayout.addWidget(self.ffb_button)
 
 
+
         layout.addLayout(Buttonlayout)
         video_player_layout = QVBoxLayout()
         self.video_widget.setFixedSize(800,600)
@@ -83,8 +93,8 @@ class VideoPlayer(QMainWindow):
         layout.addWidget(self.video_widget, alignment=Qt.AlignmentFlag.AlignHCenter,stretch=3)
 
         playheadLayer = QHBoxLayout()
-        playheadLayer.addWidget(self.slider)
-        playheadLayer.addWidget(self.playheadTracker)
+        playheadLayer.addWidget(self.slider,alignment=Qt.AlignmentFlag.AlignLeft)
+        playheadLayer.addWidget(self.playheadTracker,alignment=Qt.AlignmentFlag.AlignRight)
         layout.addLayout(playheadLayer)
 
 
@@ -161,7 +171,7 @@ class VideoPlayer(QMainWindow):
         seconds = (ms // 1000) % 60
         minutes = (ms // (1000 * 60)) % 60
         hours = (ms // (1000 * 60 * 60))
-        return f"{hours}:{minutes}:{seconds}:{centiseconds}"
+        return f"{hours:02}:{minutes:02}:{seconds:02}:{centiseconds:01}"
 
 
 if __name__ == "__main__":
