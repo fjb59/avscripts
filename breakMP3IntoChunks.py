@@ -203,6 +203,10 @@ class MediaFileBreaker:
                         if audios > 0 and audios <= self.metaData["AudioStreams"]:
                             self.audiostream = audios
 
+                    case "mono":
+                        if param.strip()=="yes":
+                            self.mono=True
+
 
                     case _ :
                         match self.operation:
@@ -377,6 +381,13 @@ class MediaFileBreaker:
                     if not os.path.exists(self.dstFolder):
                         os.makedirs(self.dstFolder)
                     print (f"Exporting {dstFileName}")
+                    if self.mono:
+                        mono_audio = audio_segment.set_channels(1)
+                        del audio_segment
+                        audio_segment = mono_audio
+                        del mono_audio
+
+
                     audio_segment.export(dstFileName,format=self.destination_codec)
                     del audio_segment
                 elif  self.mediaType ==modes.video:
@@ -605,6 +616,7 @@ class MediaFileBreaker:
         self.sCodec = ""
         self.dCodec = ""
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
+        self.mono =False
 
         if sCodec in self.allowedAudioCodecs or sCodec in self.allowedVideoCodecs:
             self.source_codec = sCodec
