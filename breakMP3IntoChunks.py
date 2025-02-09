@@ -23,7 +23,7 @@ class MediaFileBreaker:
     associatedCodecs = {'AVI':'mpeg4','MP4':'h264','MKV':'hevc','TS':'mpegts','mp3':'MP2/3 (MPEG audio layer 2/3)'}
 
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
-    allowedOperations = ('break',"quickconvert", "convert","dumpframes")
+    allowedOperations = ("break","quickconvert", "convert","dumpframes", "batch")
 
 
     @property
@@ -155,6 +155,9 @@ class MediaFileBreaker:
                     case "operation":
                         if param in self.allowedOperations:
                             self.operation = param
+                    case "batch":
+                        self.operation="batch"
+                        continue
                     case "file":
                         self.sourcePath = param.strip()
                         if os.path.exists(self.sourcePath):
