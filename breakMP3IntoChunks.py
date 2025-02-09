@@ -39,7 +39,7 @@ class MediaFileBreaker:
                 desired_codec = result['format_name']
                 if desired_codec in self.associatedCodecs or self.associatedCodec(desired_codec):
                     self.sCodec = result['format_name']
-                    foundCodec=self.associatedCodec(desired_codec)[0] if len (self.associatedCodec(desired_codec)) > 0 else None
+                    foundCodec=self.associatedCodec(desired_codec) if len (self.associatedCodec(desired_codec)) > 0 else None
                     if foundCodec in self.allowedVideoCodecs:
                         self.mediaType=modes.video
                     elif foundCodec in self.allowedAudioCodecs:
@@ -88,7 +88,15 @@ class MediaFileBreaker:
 
 
     def associatedCodec(self, tCodec):
-        return [k for k, v in self.associatedCodecs.items() if v == tCodec]
+        foundSoFar=[k for k, v in self.associatedCodecs.items() if v == tCodec]
+        if len(foundSoFar)==0:
+            foundSoFar = tCodec if tCodec in  self.associatedCodecs else None
+        else:
+            foundSoFar=foundSoFar[0]
+            pass
+
+
+        return foundSoFar
     def override_codec(self,isOveridable):
         self.override_codec = isOveridable
     def time_to_milliseconds(self, tTime):
@@ -181,6 +189,9 @@ class MediaFileBreaker:
                     case "videocodecdest":
                         if (param.rstrip() in self.allowedVideoCodecs and self.mediaType == modes.video) or (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
                             self.destination_codec = param.rstrip()
+                    case "audiocodecdest":
+                        if (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
+                            self.destination_codec=param.strip()
                     case "audioencoder":
                         continue
                     case "videoencoder":
