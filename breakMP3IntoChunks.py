@@ -20,7 +20,7 @@ class errors(Enum):
 class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','mp3','FLAC','flac','AAC')
     allowedVideoCodecs = ('AVI','MKV','MP4',"TS")
-    associatedCodecs = {'AVI':'mpeg4','MP4':'h264','MKV':'hevc','TS':'mpegts','mp3':'MP2/3 (MPEG audio layer 2/3)'}
+    associatedCodecs = {'AVI':'mpeg4','MP4':'mov,mp4,m4a,3gp,3g2,mj2','MKV':'hevc','TS':'mpegts','mp3':'MP2/3 (MPEG audio layer 2/3)'}
 
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
     allowedOperations = ("break","quickconvert", "convert","dumpframes", "batch")
