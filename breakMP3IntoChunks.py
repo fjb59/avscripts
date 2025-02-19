@@ -167,14 +167,17 @@ class MediaFileBreaker:
                         self.operation = "batch"
                         continue
                     case "file":
-                        self.sourcePath = param.strip()
+
+                        sourcePath  = param.strip()
+                        sourcePath = self.remove_quotes(sourcePath)
+                        self.sourcePath = sourcePath
                         if os.path.exists(self.sourcePath):
 
                                 continue
 
 
                         else:
-                            print(f"error: {self.srcPath} does not exist!")
+                            print(f"error: {self.sourcePath} does not exist!")
                             myfile.close()
                             exit(errors.fileNotFound)
 
@@ -594,6 +597,14 @@ class MediaFileBreaker:
 
         process.wait()  # Wait for the process to finish
         return process.returncode
+
+    def remove_quotes(self,s):
+        # Check if the string starts and ends with the same type of quote
+        if (s.startswith('"') or  s.startswith('"')):
+            s = s[1:]  # Remove the first and last characters
+        if (s.endswith('"') or s.endswith("'")):
+            s = s[:-1]
+        return s  # Return the string unchanged if not enclosed in quotes
 
     def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter='=',sCodec=None, dCodec=None):
         self.queue = {}
