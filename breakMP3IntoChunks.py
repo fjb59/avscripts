@@ -164,7 +164,7 @@ class MediaFileBreaker:
                         if param in self.allowedOperations:
                             self.operation = param
                     case "batch":
-                        self.operation="batch"
+                        self.operation = "batch"
                         continue
                     case "file":
                         self.sourcePath = param.strip()
