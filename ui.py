@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider, QHBoxLayout, \
-    QTableWidget, QTextEdit
+    QTableWidget, QTextEdit, QTableWidgetItem
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import QUrl, Qt
@@ -9,6 +9,22 @@ from PyQt6.QtCore import QUrl, Qt
 
 
 class VideoPlayer(QMainWindow):
+    @property
+    def mark_in(self):
+        if self.table.currentRow() ==0:
+            pass
+        else:
+            return self.media_player.position()
+    @mark_in.setter
+    def mark_in(self,position):
+        if self.table.currentRow() >-1:
+            self.table.currentRow()[0]= 3
+        else:
+            rowcount=self.table.rowCount()
+            self.table.insertRow(rowcount)
+            self.table.setItem(rowcount+1,0,QTableWidgetItem(position))
+
+
     def __init__(self):
         buttonHeight=32
         super().__init__()
@@ -32,6 +48,14 @@ class VideoPlayer(QMainWindow):
         self.rb_button.setFixedSize(40,buttonHeight)
         self.rb_button.clicked.connect(lambda: self.rewind(10))
 
+        self.sr_button = QPushButton("<-")
+        self.sr_button.setFixedSize(40,buttonHeight)
+        self.sr_button.clicked.connect(lambda : self.rewind(1))
+        self.ssr_button = QPushButton("<--")
+        self.ssr_button.setFixedSize(40,buttonHeight)
+        self.ssr_button.clicked.connect(lambda : self.rewind(0.1))
+
+
         self.start_button = QPushButton("> ||")
         self.start_button.setFixedSize(40,buttonHeight)
         self.start_button.clicked.connect(self.start_video)
@@ -41,6 +65,14 @@ class VideoPlayer(QMainWindow):
         self.stop_button = QPushButton("Stop")
         self.stop_button.setFixedSize(48,buttonHeight)
         self.stop_button.clicked.connect(self.stop_video)
+
+        self.sf_button = QPushButton(">-")
+        self.sf_button.setFixedSize(40,buttonHeight)
+        self.sf_button.clicked.connect(lambda: self.fast_forward(1))
+        self.ssf_button = QPushButton(">--")
+        self.ssf_button.setFixedSize(40,buttonHeight)
+        self.ssf_button.clicked.connect(lambda: self.fast_forward(0.1))
+
 
         self.fb_button = QPushButton(">>")
         self.fb_button.setFixedSize(40,buttonHeight)
@@ -53,9 +85,11 @@ class VideoPlayer(QMainWindow):
         #tag in/ out buttons
         self.tagin_button = QPushButton("[")
         self.tagin_button.setFixedSize(32,buttonHeight)
+        self.tagin_button.clicked.connect(self.tag_in)
 
         self.tagout_button = QPushButton("]")
         self.tagout_button.setFixedSize(32,buttonHeight)
+        self.tagout_button.clicked.connect(self.tag_out)
 
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.setFixedSize(800,24)
@@ -78,11 +112,16 @@ class VideoPlayer(QMainWindow):
         Buttonlayout = QHBoxLayout()
         Buttonlayout.addWidget(self.frb_button)
         Buttonlayout.addWidget(self.rb_button)
+        Buttonlayout.addWidget(self.ssr_button)
+        Buttonlayout.addWidget(self.sr_button)
 
         Buttonlayout.addWidget(self.start_button)
         Buttonlayout.addWidget(self.stop_button)
+        Buttonlayout.addWidget(self.ssf_button)
+        Buttonlayout.addWidget(self.sf_button)
         Buttonlayout.addWidget(self.fb_button)
         Buttonlayout.addWidget(self.ffb_button)
+
 
 
 
@@ -128,7 +167,8 @@ class VideoPlayer(QMainWindow):
         self.media_player.stop()
 
     def tag_in(self):
-        pass
+        self.mark_in = "test"
+
     def tag_out(self):
         pass
 
@@ -147,11 +187,13 @@ class VideoPlayer(QMainWindow):
 
     def rewind(self,ss=10):
         ms = ss*1000
-        (self.media_player.setPosition(max(0, self.media_player.position() - ms)))  # Rewind by 5 seconds
+        newpos = int(max(0, self.media_player.position() - ms))
+        self.media_player.setPosition(newpos)  # Rewind by 5 seconds
 
     def fast_forward(self,ff=10):
         ms = ff*1000
-        self.media_player.setPosition(min(self.media_player.duration(), self.media_player.position() + ms))
+        newpos= int(min(self.media_player.duration(), self.media_player.position() + ms))
+        self.media_player.setPosition(newpos)
 
     def load_video(self, file_path):
         self.media_player.setSource(QUrl.fromLocalFile(file_path))
