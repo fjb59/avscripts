@@ -20,10 +20,27 @@ class VideoPlayer(QMainWindow):
         if self.table.currentRow() >-1:
             self.table.currentRow()[0]= 3
         else:
-            rowcount=self.table.rowCount()
-            self.table.insertRow(rowcount)
-            self.table.setItem(rowcount+1,0,QTableWidgetItem(position))
+            row=self.table.rowCount()
+            self.table.insertRow(row)
+            self.table.setItem(row, 0, QTableWidgetItem("Cut "+str(row+1)))
+            self.table.setItem(row, 1, QTableWidgetItem(str(position)))
+            self.mark_in_pos = None
+    @property
+    def mark_out(self,position):
+        if self.table.currentRow() == 0:
+            pass
+        else:
+            return self.media_player.position()
+    @mark_out.setter
+    def mark_out(self,position):
 
+        if self.table.currentRow() >-1:
+            row = self.table.currentRow()
+            self.table.setItem(row, 2, QTableWidgetItem(str(position)))
+
+        else:
+            row = self.table.rowCount() -1
+            self.table.setItem(row, 2, QTableWidgetItem(str(position)))
 
     def __init__(self):
         buttonHeight=32
@@ -110,15 +127,19 @@ class VideoPlayer(QMainWindow):
 
         layout =QVBoxLayout()
         Buttonlayout = QHBoxLayout()
+        LowerButtonlayout = QHBoxLayout()
+
+
         Buttonlayout.addWidget(self.frb_button)
         Buttonlayout.addWidget(self.rb_button)
-        Buttonlayout.addWidget(self.ssr_button)
-        Buttonlayout.addWidget(self.sr_button)
+
+        LowerButtonlayout.addWidget(self.ssr_button,alignment=Qt.AlignmentFlag.AlignHCenter)  # slow slow rewind
+        LowerButtonlayout.addWidget(self.sr_button,alignment=Qt.AlignmentFlag.AlignHCenter)   # slow rewind
 
         Buttonlayout.addWidget(self.start_button)
         Buttonlayout.addWidget(self.stop_button)
-        Buttonlayout.addWidget(self.ssf_button)
-        Buttonlayout.addWidget(self.sf_button)
+        LowerButtonlayout.addWidget(self.ssf_button,alignment=Qt.AlignmentFlag.AlignHCenter)
+        LowerButtonlayout.addWidget(self.sf_button,alignment=Qt.AlignmentFlag.AlignHCenter)
         Buttonlayout.addWidget(self.fb_button)
         Buttonlayout.addWidget(self.ffb_button)
 
@@ -126,6 +147,7 @@ class VideoPlayer(QMainWindow):
 
 
         layout.addLayout(Buttonlayout)
+        layout.addLayout(LowerButtonlayout)
         video_player_layout = QVBoxLayout()
         self.video_widget.setFixedSize(800,600)
 
@@ -167,10 +189,10 @@ class VideoPlayer(QMainWindow):
         self.media_player.stop()
 
     def tag_in(self):
-        self.mark_in = "test"
+        self.mark_in = self.media_player.position()
 
     def tag_out(self):
-        pass
+        self.mark_out = self.media_player.position()
 
     def set_position(self, position):
         self.media_player.setPosition(position)
@@ -197,7 +219,7 @@ class VideoPlayer(QMainWindow):
 
     def load_video(self, file_path):
         self.media_player.setSource(QUrl.fromLocalFile(file_path))
-        self.media_player.play()
+        #self.media_player.play()
         self.setWindowTitle(file_path)
 
     def dragEnterEvent(self, event):
