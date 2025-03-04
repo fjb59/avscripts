@@ -1,6 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider, QHBoxLayout, \
-    QTableWidget, QTextEdit, QTableWidgetItem
+    QTableWidget, QTextEdit, QTableWidgetItem, QStyle
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import QUrl, Qt
@@ -73,13 +73,15 @@ class VideoPlayer(QMainWindow):
         self.ssr_button.clicked.connect(lambda : self.rewind(0.1))
 
 
-        self.start_button = QPushButton("> ||")
+        self.start_button = QPushButton("")
+        self.start_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
         self.start_button.setFixedSize(40,buttonHeight)
         self.start_button.clicked.connect(self.start_video)
 
 
 
-        self.stop_button = QPushButton("Stop")
+        self.stop_button = QPushButton()
+        self.stop_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop))
         self.stop_button.setFixedSize(48,buttonHeight)
         self.stop_button.clicked.connect(self.stop_video)
 
@@ -179,8 +181,10 @@ class VideoPlayer(QMainWindow):
     def start_video(self):
         if self.media_player.isPlaying():
             self.media_player.pause()
+            self.start_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
         else:
             self.media_player.play()
+            self.start_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPause))
 
     def pause_video(self):
         self.media_player.pause()
