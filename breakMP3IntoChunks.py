@@ -367,8 +367,11 @@ class MediaFileBreaker:
             #lCodec = get_media_file_type(fullPath)
             #self.source_codec =lCodec
             if self.destination_codec == None:
-                self.destination_codec = self.source_codec
-
+                associated_codec = self.associatedCodec(self.source_codec)
+                if associated_codec is not None:
+                    self.destination_codec = associated_codec
+                else :
+                    self.destination_codec = self.source_codec
 
 
             dstFileName = os.path.join(self.dstFolder, self.prefix+name + "." + self.destination_codec)
@@ -417,7 +420,7 @@ class MediaFileBreaker:
                                     "-map", f"0:a:{self.audiostream-1}",
                                     "-c", "copy",
                                     dstFileName,
-                                    "-v", "quiet"
+                                    "-v",  "error"
                                 ],
                                 check=True
                             )

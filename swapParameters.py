@@ -16,7 +16,7 @@ def swapParameters(tSrc,tDest,tDelimiter,tDDelimiter,tForcedOverwrite="no"):
             continue
         if tDelimiter not in srcLine:
             continue
-        arg1, arg2= srcLine.split(tDelimiter)
+        arg1, arg2= srcLine.split(tDelimiter,maxsplit=1)
         arg1, arg2 = arg1.strip(), arg2.strip()
         destLine = arg2+tDDelimiter+arg1+"\n"
         dst.write(destLine)
