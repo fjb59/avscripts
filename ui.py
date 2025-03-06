@@ -1,4 +1,6 @@
 import sys
+
+from PyQt6.QtGui import QShortcut, QKeySequence
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider, QHBoxLayout, \
     QTableWidget, QTextEdit, QTableWidgetItem, QStyle
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
@@ -43,6 +45,7 @@ class VideoPlayer(QMainWindow):
             self.table.setItem(row, 2, QTableWidgetItem(str(position)))
 
     def __init__(self):
+        self.newStep=10000
         buttonHeight=32
         super().__init__()
         self.lastTimeToDisplay = None
@@ -58,11 +61,14 @@ class VideoPlayer(QMainWindow):
         self.media_player.setAudioOutput(self.audioOutput)
        
 
-        self.frb_button = QPushButton("<<<")
+        self.frb_button = QPushButton("")
         self.frb_button.setFixedSize(40,buttonHeight)
-        self.frb_button.clicked.connect(lambda : self.rewind(30))
-        self.rb_button = QPushButton("<<")
+        self.frb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSkipBackward))
+        self.frb_button.clicked.connect(lambda : self.rewind(self.newStep/1000))
+
+        self.rb_button = QPushButton("")
         self.rb_button.setFixedSize(40,buttonHeight)
+        self.rb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSeekBackward))
         self.rb_button.clicked.connect(lambda: self.rewind(10))
 
         self.sr_button = QPushButton("<-")
@@ -77,6 +83,8 @@ class VideoPlayer(QMainWindow):
         self.start_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
         self.start_button.setFixedSize(40,buttonHeight)
         self.start_button.clicked.connect(self.start_video)
+        self.playShortcut = QShortcut(QKeySequence("Space"), self)
+        self.playShortcut.activated.connect(self.start_video)
 
 
 
@@ -85,19 +93,40 @@ class VideoPlayer(QMainWindow):
         self.stop_button.setFixedSize(48,buttonHeight)
         self.stop_button.clicked.connect(self.stop_video)
 
-        self.sf_button = QPushButton(">-")
+        self.trslider = QSlider(Qt.Orientation.Horizontal)
+        self.trslider.setFixedSize(100, 24)
+        self.trslider.setRange(100,60000)
+        self.trslider.setSingleStep(100)
+        # self.trslider.setTracking(True)
+        self.trslider.setToolTip("Skip Speed")
+        self.trslider.setValue(self.newStep)
+        self.trslider.setTickInterval(100)
+        self.trslider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self.trslider.sliderMoved.connect(self.trStepChanged)
+
+        self.trsTracker = QTextEdit(str(self.newStep))
+        self.trsTracker.setFixedSize(96,24)
+        self.trsTracker.setReadOnly(True)
+
+
+
+        self.sf_button = QPushButton("-")
         self.sf_button.setFixedSize(40,buttonHeight)
+        self.sf_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSkipForward))
         self.sf_button.clicked.connect(lambda: self.fast_forward(1))
         self.ssf_button = QPushButton(">--")
         self.ssf_button.setFixedSize(40,buttonHeight)
         self.ssf_button.clicked.connect(lambda: self.fast_forward(0.1))
 
 
-        self.fb_button = QPushButton(">>")
+        self.fb_button = QPushButton("")
         self.fb_button.setFixedSize(40,buttonHeight)
         self.fb_button.clicked.connect(lambda: self.fast_forward(10))
-        self.ffb_button = QPushButton(">>>")
+        self.fb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSeekForward))
+
+        self.ffb_button = QPushButton("")
         self.ffb_button.setFixedSize(40,buttonHeight)
+        self.ffb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSkipForward))
         self.ffb_button.clicked.connect(lambda: self.fast_forward(30))
 
 
@@ -114,6 +143,7 @@ class VideoPlayer(QMainWindow):
         self.slider.setFixedSize(800,24)
 
         self.slider.sliderMoved.connect(self.set_position)
+
         self.playheadTracker = QTextEdit("00:00:00:0")
         self.playheadTracker.setFixedSize(96,24)
         self.playheadTracker.setReadOnly(True)
@@ -137,7 +167,8 @@ class VideoPlayer(QMainWindow):
 
         LowerButtonlayout.addWidget(self.ssr_button,alignment=Qt.AlignmentFlag.AlignHCenter)  # slow slow rewind
         LowerButtonlayout.addWidget(self.sr_button,alignment=Qt.AlignmentFlag.AlignHCenter)   # slow rewind
-
+        LowerButtonlayout.addWidget(self.trslider,alignment=Qt.AlignmentFlag.AlignHCenter)
+        LowerButtonlayout.addWidget(self.trsTracker)
         Buttonlayout.addWidget(self.start_button)
         Buttonlayout.addWidget(self.stop_button)
         LowerButtonlayout.addWidget(self.ssf_button,alignment=Qt.AlignmentFlag.AlignHCenter)
@@ -207,6 +238,15 @@ class VideoPlayer(QMainWindow):
         if self.timeToDisplay != self.lastTimeToDisplay:
             self.playheadTracker.setText(self.timeToDisplay)
             self.lastTimeToDisplay = self.timeToDisplay
+
+    def trStepChanged(self):
+        step = 100  # 1-second step
+        position = self.trslider.sliderPosition()
+        new_position = round(position / step) * step
+        self.trslider.setValue(new_position)
+
+        self.newStep = self.trslider.value()
+        self.trsTracker.setText(str(self.newStep))
 
     def duration_changed(self, duration):
         self.slider.setRange(0, duration)
