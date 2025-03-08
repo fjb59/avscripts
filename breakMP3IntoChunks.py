@@ -24,6 +24,7 @@ class MediaFileBreaker:
 
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
     allowedOperations = ("break","quickconvert", "convert","dumpframes", "batch")
+    defaultSegmentFormat = "name=timesegment"
 
 
     @property
@@ -153,10 +154,14 @@ class MediaFileBreaker:
                     continue
                 if line.startswith("#"):
                     continue
-                if tDelimiter not in line:
+                found= [word for word in self.delimiter if word in line]
+                if found:
+                    Delimiter = found[0]
+                else:
                     continue
 
-                name, param = line.split(tDelimiter)
+
+                name, param = line.split(Delimiter,maxsplit=1)
                 name = name.strip().lower()
 
                 match name.lower():
@@ -210,23 +215,30 @@ class MediaFileBreaker:
                         if param.strip()=="yes":
                             self.mono=True
 
+                    case "segmentformat":
+                        self.segmentFormat=self.remove_quotes(param).strip()
+
 
                     case _ :
                         match self.operation:
                             case "break" | "dumpframes":
-                                hyphens = param.count('-')
+                                SegmentName, rTime = self.parse_segment(self.segmentFormat, line.strip())
+
+                                hyphens = rTime.count('-')
                                 match hyphens:
                                     case 1:
-                                        sTime,eTime = param.split('-')
+                                        sTime,eTime = rTime.split('-')
                                         sTime,eTime = sTime.strip(),eTime.strip()
                                         sHours, sMinutes, sSeconds = self.time_fromstring(sTime, precision="hhmmss")
                                         eHours, eMinutes, eSeconds = self.time_fromstring(eTime, precision="hhmmss")
                                         self.addToQueue(name, (sHours, sMinutes, sSeconds,eHours,eMinutes,eSeconds))
                                     case 0:
-                                        sTime = param
+
+                                        sTime = rTime
                                         eTime = -1
+
                                         hours, minutes, seconds = self.time_fromstring(sTime, precision="hhmmss")
-                                        self.addToQueue(name, (hours, minutes, seconds))
+                                        self.addToQueue(SegmentName, (hours, minutes, seconds))
 
                                     case _:
                                         print (f"Invalid line: {line}")
@@ -609,7 +621,23 @@ class MediaFileBreaker:
             s = s[:-1]
         return s  # Return the string unchanged if not enclosed in quotes
 
-    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter='=',sCodec=None, dCodec=None):
+
+    def parse_segment(self,defaultSegmentFormat, inputString):
+        # Convert the format to a regex pattern
+        pattern = re.escape(defaultSegmentFormat.lower())
+        pattern = pattern.replace(r'name', r'(?P<name>.+)')
+        pattern = pattern.replace(r'timesegment', r'(?P<timesegment>.+?)')
+
+        # Match the input string
+        match = re.match(pattern, inputString)
+
+        if match:
+            # Extract the name and timesegment
+            return match.group('name'), match.group('timesegment')
+        else:
+            return None, None
+
+    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter=('=','-','_'),sCodec=None, dCodec=None,tSegmentFormat = defaultSegmentFormat):
         self.queue = {}
         self.writeQueue = []
         self.srcPath=SrcPath
@@ -631,6 +659,8 @@ class MediaFileBreaker:
         self.dCodec = ""
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
         self.mono =False
+        self.segmentFormat = tSegmentFormat
+
 
         if sCodec in self.allowedAudioCodecs or sCodec in self.allowedVideoCodecs:
             self.source_codec = sCodec
@@ -642,6 +672,7 @@ class MediaFileBreaker:
             self.destination_codec = None
 
         self.rootFolder = os.path.dirname(self.srcTextFile)
+
 
 
     def go(self):

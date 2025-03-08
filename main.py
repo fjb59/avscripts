@@ -23,6 +23,8 @@ if __name__ == "__main__":
             if os.path.exists(srcTextFile):
                 afb = MediaFileBreaker(SrcTextFile=srcTextFile)
                 afb.go()
+            else :
+                print (f"There is no text file named {srcTextFile}")
 
         case "downsize":
             pass
