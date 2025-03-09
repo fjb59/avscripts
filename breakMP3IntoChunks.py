@@ -1,5 +1,7 @@
 import math
 import os
+import keyboard
+
 
 from pydub import AudioSegment
 import simpleaudio as sa
@@ -150,8 +152,11 @@ class MediaFileBreaker:
 
         with (open(tSrcTxt, 'r', encoding='utf-8') as myfile):
             for line in myfile:
-                if line == "\n":
-                    continue
+                match line.lstrip().lower():
+                    case "\n":
+                        continue
+
+
                 if line.startswith("#"):
                     continue
                 found= [word for word in self.delimiter if word in line]
@@ -217,6 +222,7 @@ class MediaFileBreaker:
 
                     case "segmentformat":
                         self.segmentFormat=self.remove_quotes(param).strip()
+
 
 
                     case _ :
@@ -367,6 +373,8 @@ class MediaFileBreaker:
         if not os.path.exists(self.dstFolder):
             os.makedirs(self.dstFolder,exist_ok=True)
         for item in self.writeQueue:
+
+
             name = list(item.keys())[0]
             startms,endms = list(item.values())[0]
             start, end =int(startms/1000),int(endms/1000)
