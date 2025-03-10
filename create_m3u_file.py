@@ -32,7 +32,7 @@ class m3uClass:
 
 
             self.folder = dir_path
-            pattern = re.compile(regex)
+            pattern = re.compile(regex,re.IGNORECASE)
 
             # Walk through the directory tree
             for root, _, files in os.walk(dir_path):
