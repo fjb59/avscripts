@@ -1,6 +1,6 @@
 import math
 import os
-import keyboard
+
 
 
 from pydub import AudioSegment
@@ -152,106 +152,104 @@ class MediaFileBreaker:
 
         with (open(tSrcTxt, 'r', encoding='utf-8') as myfile):
             for line in myfile:
-                match line.lstrip().lower():
-                    case "\n":
+                if line.startswith("\n"):
                         continue
 
 
                 if line.startswith("#"):
                     continue
-                found= [word for word in self.delimiter if word in line]
-                if found:
-                    Delimiter = found[0]
+
+                #[word for word in self.delimiter if word in line]
+                line = re.sub(r"[\u2012\u2013\u2014\u2015]", "-", line) # onlly allow ascii type of hyphen
+                parts = re.split(r"[-_=–]", line, maxsplit=1)
+                if len(parts) == 1:
+                    name, param = None, None
                 else:
-                    continue
-
-
-                name, param = line.split(Delimiter,maxsplit=1)
-                name = name.strip().lower()
-
-                match name.lower():
-                    case "operation":
-                        if param in self.allowedOperations:
-                            self.operation = param
-                    case "batch":
-                        self.operation = "batch"
-                        continue
-                    case "file":
-
-                        sourcePath  = param.strip()
-                        sourcePath = self.remove_quotes(sourcePath)
-                        self.sourcePath = sourcePath
-                        if os.path.exists(self.sourcePath):
-
-                                continue
-
-
-                        else:
-                            print(f"error: {self.sourcePath} does not exist!")
-                            myfile.close()
-                            exit(errors.fileNotFound)
-
-                    case "fps":
-                        if self.operation in ("dumpframes"):
-                            self.fps=int(param.strip())
-                            pass
-                    case "outputfolder":
-                        if dstPath == "":
-                            dstPath = param.rstrip()
+                    name, param = parts
+                if name is not None:
+                    match name.lower():
+                        case "operation":
+                            if param in self.allowedOperations:
+                                self.operation = param
+                        case "batch":
+                            self.operation = "batch"
                             continue
-                    case "videocodecdest":
-                        if (param.rstrip() in self.allowedVideoCodecs and self.mediaType == modes.video) or (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
-                            self.destination_codec = param.rstrip()
-                    case "audiocodecdest":
-                        if (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
-                            self.destination_codec=param.strip()
-                    case "audioencoder":
-                        continue
-                    case "videoencoder":
-                        continue
-                    case "prefix":
-                        self.prefix=param.strip()
-                    case "audiostream":
-                        audios = int(param.strip())
-                        if audios > 0 and audios <= self.metaData["AudioStreams"]:
-                            self.audiostream = audios
+                        case "file":
 
-                    case "mono":
-                        if param.strip()=="yes":
-                            self.mono=True
+                            sourcePath  = param.strip()
+                            sourcePath = self.remove_quotes(sourcePath)
+                            self.sourcePath = sourcePath
+                            if os.path.exists(self.sourcePath):
 
-                    case "segmentformat":
-                        self.segmentFormat=self.remove_quotes(param).strip()
+                                    continue
 
 
+                            else:
+                                print(f"error: {self.sourcePath} does not exist!")
+                                myfile.close()
+                                exit(errors.fileNotFound)
 
-                    case _ :
-                        match self.operation:
-                            case "break" | "dumpframes":
-                                SegmentName, rTime = self.parse_segment(self.segmentFormat, line.strip())
+                        case "fps":
+                            if self.operation in ("dumpframes"):
+                                self.fps=int(param.strip())
+                                pass
+                        case "outputfolder":
+                            if dstPath == "":
+                                dstPath = param.rstrip()
+                                continue
+                        case "videocodecdest":
+                            if (param.rstrip() in self.allowedVideoCodecs and self.mediaType == modes.video) or (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
+                                self.destination_codec = param.rstrip()
+                        case "audiocodecdest":
+                            if (param.rstrip() in self.allowedAudioCodecs and self.mediaType == modes.audio):
+                                self.destination_codec=param.strip()
+                        case "audioencoder":
+                            continue
+                        case "videoencoder":
+                            continue
+                        case "prefix":
+                            self.prefix=param.strip()
+                        case "audiostream":
+                            audios = int(param.strip())
+                            if audios > 0 and audios <= self.metaData["AudioStreams"]:
+                                self.audiostream = audios
 
-                                hyphens = rTime.count('-')
-                                match hyphens:
-                                    case 1:
-                                        sTime,eTime = rTime.split('-')
-                                        sTime,eTime = sTime.strip(),eTime.strip()
-                                        sHours, sMinutes, sSeconds = self.time_fromstring(sTime, precision="hhmmss")
-                                        eHours, eMinutes, eSeconds = self.time_fromstring(eTime, precision="hhmmss")
-                                        self.addToQueue(name, (sHours, sMinutes, sSeconds,eHours,eMinutes,eSeconds))
-                                    case 0:
+                        case "mono":
+                            if param.strip()=="yes":
+                                self.mono=True
 
-                                        sTime = rTime
-                                        eTime = -1
+                        case "segmentformat":
+                            self.segmentFormat=self.remove_quotes(param).strip()
 
-                                        hours, minutes, seconds = self.time_fromstring(sTime, precision="hhmmss")
-                                        self.addToQueue(SegmentName, (hours, minutes, seconds))
 
-                                    case _:
-                                        print (f"Invalid line: {line}")
-                                        continue
-                            case "convert":
-                                    if param.count(">") >0:
-                                        lFrom,lTo = param.split(">")
+
+                        case _ :
+                            match self.operation:
+                                case "break" | "dumpframes":
+                                    SegmentName, rTime = self.parse_segment(self.segmentFormat, line.strip())
+
+                                    hyphens = rTime.count('-') # determines if an end time exists. if not it goes to the beginning of the next section or the end of file.
+                                    match hyphens:
+                                        case 1:
+                                            sTime,eTime = rTime.split('-')
+                                            sTime,eTime = sTime.strip(),eTime.strip()
+                                            sHours, sMinutes, sSeconds = self.time_fromstring(sTime, precision="hhmmss")
+                                            eHours, eMinutes, eSeconds = self.time_fromstring(eTime, precision="hhmmss")
+                                            self.addToQueue(name, (sHours, sMinutes, sSeconds,eHours,eMinutes,eSeconds))
+                                        case 0:
+
+                                            sTime = rTime
+                                            eTime = -1
+
+                                            hours, minutes, seconds = self.time_fromstring(sTime, precision="hhmmss")
+                                            self.addToQueue(SegmentName, (hours, minutes, seconds))
+
+                                        case _:
+                                            print (f"Invalid line: {line}")
+                                            continue
+                                case "convert":
+                                        if param.count(">") >0:
+                                            lFrom,lTo = param.split(">")
 
                                     
 
@@ -645,7 +643,7 @@ class MediaFileBreaker:
         else:
             return None, None
 
-    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter=('=','-','_'),sCodec=None, dCodec=None,tSegmentFormat = defaultSegmentFormat):
+    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter='=',sCodec=None, dCodec=None,tSegmentFormat = defaultSegmentFormat):
         self.queue = {}
         self.writeQueue = []
         self.srcPath=SrcPath

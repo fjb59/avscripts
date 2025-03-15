@@ -11,6 +11,7 @@ from PyQt6.QtCore import QUrl, Qt
 
 
 class VideoPlayer(QMainWindow):
+    speeds =[0.1,0.5,5,10,30,60]
     @property
     def mark_in(self):
         if self.table.currentRow() ==0:
@@ -45,7 +46,7 @@ class VideoPlayer(QMainWindow):
             self.table.setItem(row, 2, QTableWidgetItem(str(position)))
 
     def __init__(self):
-        self.newStep=10000
+        self.newStep=3
         buttonHeight=32
         super().__init__()
         self.lastTimeToDisplay = None
@@ -95,12 +96,12 @@ class VideoPlayer(QMainWindow):
 
         self.trslider = QSlider(Qt.Orientation.Horizontal)
         self.trslider.setFixedSize(100, 24)
-        self.trslider.setRange(100,60000)
-        self.trslider.setSingleStep(100)
+        self.trslider.setRange(0,len(self.speeds)-1)
+        self.trslider.setSingleStep(1)
         # self.trslider.setTracking(True)
         self.trslider.setToolTip("Skip Speed")
         self.trslider.setValue(self.newStep)
-        self.trslider.setTickInterval(100)
+        self.trslider.setTickInterval(1)
         self.trslider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.trslider.sliderMoved.connect(self.trStepChanged)
 
@@ -242,10 +243,11 @@ class VideoPlayer(QMainWindow):
     def trStepChanged(self):
         step = 100  # 1-second step
         position = self.trslider.sliderPosition()
+        self.newStep =self.speeds[position]
         new_position = round(position / step) * step
-        self.trslider.setValue(new_position)
+      #  self.trslider.setValue(new_position)
 
-        self.newStep = self.trslider.value()
+      #  self.newStep = self.trslider.value()
         self.trsTracker.setText(str(self.newStep))
 
     def duration_changed(self, duration):
