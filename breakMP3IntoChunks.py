@@ -595,7 +595,7 @@ class MediaFileBreaker:
     def convert(self,input_fileMask, output, tCodec="copy"):
         codec = tCodec
         regex=re.compile(input_fileMask)
-        files = [f for f in os.listdir(source_folder) if regex.search(f)]
+        files = [f for f in os.listdir(input_fileMask) if regex.search(f)]
         total_files = len(files)
         if total_files ==0:
             print(f"No files found matching the pattern: {input_fileMask}")
