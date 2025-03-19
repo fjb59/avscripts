@@ -20,30 +20,36 @@ class VideoPlayer(QMainWindow):
             return self.media_player.position()
     @mark_in.setter
     def mark_in(self,position):
-        if self.table.currentRow() >-1:
-            self.table.currentRow()[0]= 3
+        if self.table.currentRow() >0:
+           row = self.table.currentRow()
+           self.table.setItem(row, 0, QTableWidgetItem("Cut " + str(row + 1)))
+           self.table.setItem(row, 1, QTableWidgetItem(str(position)))
+           self.mark_in_pos = None
         else:
             row=self.table.rowCount()
             self.table.insertRow(row)
             self.table.setItem(row, 0, QTableWidgetItem("Cut "+str(row+1)))
             self.table.setItem(row, 1, QTableWidgetItem(str(position)))
             self.mark_in_pos = None
+        self.table.setCurrentCell(0,0)
     @property
     def mark_out(self,position):
         if self.table.currentRow() == 0:
             pass
         else:
             return self.media_player.position()
+
     @mark_out.setter
     def mark_out(self,position):
 
-        if self.table.currentRow() >-1:
+        if self.table.currentRow() >0:
             row = self.table.currentRow()
             self.table.setItem(row, 2, QTableWidgetItem(str(position)))
 
         else:
             row = self.table.rowCount() -1
             self.table.setItem(row, 2, QTableWidgetItem(str(position)))
+        self.table.setCurrentCell(0,0)
 
     def __init__(self):
         self.newStep=3
@@ -201,8 +207,23 @@ class VideoPlayer(QMainWindow):
 
         layout.addLayout(TagButtonLayout)
 
-        tableLayout =QVBoxLayout()
+        self.openButton = QPushButton("Open")
+        self.saveButton = QPushButton("Save")
+        self.saveAsButton = QPushButton("Save As")
+
+
+        self.openButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
+        self.saveButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
+        self.saveAsButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
+
+
+        tableLayout =QHBoxLayout()
+        FileButtons = QVBoxLayout()
         tableLayout.addWidget(self.table)
+        tableLayout.addLayout(FileButtons)
+        FileButtons.addWidget(self.openButton)
+        FileButtons.addWidget(self.saveButton)
+        FileButtons.addWidget(self.saveAsButton)
         layout.addLayout(tableLayout)
 
 
