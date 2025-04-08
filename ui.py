@@ -1,8 +1,9 @@
+import os.path
 import sys
 
 from PyQt6.QtGui import QShortcut, QKeySequence
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider, QHBoxLayout, \
-    QTableWidget, QTextEdit, QTableWidgetItem, QStyle
+    QTableWidget, QTextEdit, QTableWidgetItem, QStyle, QFileDialog
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import QUrl, Qt
@@ -54,6 +55,7 @@ class VideoPlayer(QMainWindow):
     def __init__(self):
         self.newStep=3
         buttonHeight=32
+        self.filename = ""
         super().__init__()
         self.lastTimeToDisplay = None
         self.videoSource = ""
@@ -85,6 +87,7 @@ class VideoPlayer(QMainWindow):
         self.start_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
         self.start_button.setFixedSize(40,buttonHeight)
         self.start_button.clicked.connect(self.start_video)
+
         self.playShortcut = QShortcut(QKeySequence("Space"), self)
         self.playShortcut.activated.connect(self.start_video)
 
@@ -132,9 +135,15 @@ class VideoPlayer(QMainWindow):
         self.tagin_button.setFixedSize(32,buttonHeight)
         self.tagin_button.clicked.connect(self.tag_in)
 
+        self.inKeyShortcut = QShortcut(QKeySequence("["), self)
+        self.inKeyShortcut.activated.connect(self.tag_in)
+
         self.tagout_button = QPushButton("]")
         self.tagout_button.setFixedSize(32,buttonHeight)
         self.tagout_button.clicked.connect(self.tag_out)
+
+        self.outKeyShortcut = QShortcut(QKeySequence("]"), self)
+        self.outKeyShortcut.activated.connect(self.tag_out)
 
         self.slider = QSlider(Qt.Orientation.Horizontal)
         self.slider.setFixedSize(800,24)
@@ -204,6 +213,7 @@ class VideoPlayer(QMainWindow):
         self.openButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogOpenButton))
         self.saveButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
         self.saveAsButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
+        self.saveAsButton.clicked.connect(self.saveAs)
         self.resetButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogResetButton))
 
         tableLayout =QHBoxLayout()
@@ -281,6 +291,7 @@ class VideoPlayer(QMainWindow):
 
     def load_video(self, file_path):
         self.media_player.setSource(QUrl.fromLocalFile(file_path))
+        self.videoSource=file_path
         #self.media_player.play()
         self.setWindowTitle(file_path)
 
@@ -292,13 +303,43 @@ class VideoPlayer(QMainWindow):
         file_path = event.mimeData().urls()[0].toLocalFile()
         if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.wmv')):
             self.load_video(file_path)
+            self.filename =file_path.split(os.path.sep)[-1]
+
     def convert_millisecondsToString(self,ms):
         centiseconds =(ms // 100) %10
         seconds = (ms // 1000) % 60
         minutes = (ms // (1000 * 60)) % 60
         hours = (ms // (1000 * 60 * 60))
         return f"{hours:02}:{minutes:02}:{seconds:02}:{centiseconds:01}"
+    def saveAs(self):
+        filename=self.filename.rsplit('.',1)[0]+".avutils"
+        file_path, _ = QFileDialog.getSaveFileName(self,"Save As",filename,"avutils File (*.avutils);;All Files (*)")
+        if len(file_path.strip()) >0:
+            with (open(file_path, 'w', encoding='utf-8') as myfile):
+                myfile.write(self.videoSource+"\n")
+                for irow in range(self.table.rowCount()):
+                    itemName = self.table.item(irow,00)
+                    if not itemName or not itemName.text():
+                        continue
+                    itemNametext = itemName.text()
+                    myfile.write(itemNametext + "=")
 
+                    startTime= self.table.item(irow,1)
+                    if not startTime or not startTime.text():
+                        startTimeText ='0:0:0'
+
+                    else:
+                        startTimeText=startTime.text()
+                    myfile.write(startTimeText)
+                    endtime = self.table.item(irow,2)
+                    if not endtime or not endtime.text():
+                        endtimeText = None
+                    else:
+                        endtimeText=endtime.text()
+                        myfile.write(":"+endtimeText)
+                    myfile.write("\n")
+
+            myfile.close()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
