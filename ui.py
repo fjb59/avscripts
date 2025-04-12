@@ -9,32 +9,33 @@ from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import QUrl, Qt
 
 
-
-
 class VideoPlayer(QMainWindow):
-    speeds =[0.1,0.5,1,2,10,30,60]
+    speeds = [0.1,0.5,1,2,10,30,60]
+
     @property
     def mark_in(self):
-        if self.table.currentRow() ==0:
+        if self.table.currentRow() == 0:
             pass
         else:
             return self.media_player.position()
+
     @mark_in.setter
     def mark_in(self,position):
-        if self.table.currentRow() >0:
-           row = self.table.currentRow()
-           self.table.setItem(row, 0, QTableWidgetItem("Cut " + str(row + 1)))
-           self.table.setItem(row, 1, QTableWidgetItem(str(position)))
-           self.mark_in_pos = None
+        if self.table.currentRow() > 0:
+            row = self.table.currentRow()
+            self.table.setItem(row, 0, QTableWidgetItem("Cut " + str(row + 1)))
+            self.table.setItem(row, 1, QTableWidgetItem(str(position)))
+            self.mark_in_pos = None
         else:
-            row=self.table.rowCount()
+            row = self.table.rowCount()
             self.table.insertRow(row)
             self.table.setItem(row, 0, QTableWidgetItem("Cut "+str(row+1)))
             self.table.setItem(row, 1, QTableWidgetItem(str(position)))
             self.mark_in_pos = None
         self.table.setCurrentCell(0,0)
+
     @property
-    def mark_out(self,position):
+    def mark_out(self):
         if self.table.currentRow() == 0:
             pass
         else:
@@ -43,18 +44,18 @@ class VideoPlayer(QMainWindow):
     @mark_out.setter
     def mark_out(self,position):
 
-        if self.table.currentRow() >0:
+        if self.table.currentRow() > 0:
             row = self.table.currentRow()
             self.table.setItem(row, 2, QTableWidgetItem(str(position)))
 
         else:
-            row = self.table.rowCount() -1
+            row = self.table.rowCount() - 1
             self.table.setItem(row, 2, QTableWidgetItem(str(position)))
         self.table.setCurrentCell(0,0)
 
     def __init__(self):
-        self.newStep=3
-        buttonHeight=32
+        self.newStep = 3
+        buttonHeight = 32
         self.filename = ""
         super().__init__()
         self.lastTimeToDisplay = None
@@ -69,19 +70,15 @@ class VideoPlayer(QMainWindow):
         self.audioOutput = QAudioOutput()
         self.media_player.setAudioOutput(self.audioOutput)
        
-
         self.frb_button = QPushButton("")
         self.frb_button.setFixedSize(40,buttonHeight)
         self.frb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSkipBackward))
-        self.frb_button.clicked.connect(lambda : self.rewind(self.newStep))
+        self.frb_button.clicked.connect(lambda: self.rewind(self.newStep))
 
         self.rb_button = QPushButton("")
         self.rb_button.setFixedSize(40,buttonHeight)
         self.rb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSeekBackward))
         self.rb_button.clicked.connect(lambda: self.rewind(self.newStep))
-
-
-
 
         self.start_button = QPushButton("")
         self.start_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
@@ -90,8 +87,6 @@ class VideoPlayer(QMainWindow):
 
         self.playShortcut = QShortcut(QKeySequence("Space"), self)
         self.playShortcut.activated.connect(self.start_video)
-
-
 
         self.stop_button = QPushButton()
         self.stop_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop))
@@ -114,11 +109,6 @@ class VideoPlayer(QMainWindow):
         self.trsTracker.setFixedSize(96,24)
         self.trsTracker.setReadOnly(True)
 
-
-
-
-
-
         self.fb_button = QPushButton("")
         self.fb_button.setFixedSize(40,buttonHeight)
         self.fb_button.clicked.connect(lambda: self.fast_forward(self.newStep))
@@ -129,8 +119,7 @@ class VideoPlayer(QMainWindow):
         self.ffb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSkipForward))
         self.ffb_button.clicked.connect(lambda: self.fast_forward(self.newStep))
 
-
-        #tag in/ out buttons
+        # tag in/ out buttons
         self.tagin_button = QPushButton("[")
         self.tagin_button.setFixedSize(32,buttonHeight)
         self.tagin_button.clicked.connect(self.tag_in)
@@ -154,8 +143,6 @@ class VideoPlayer(QMainWindow):
         self.playheadTracker.setFixedSize(96,24)
         self.playheadTracker.setReadOnly(True)
 
-
-
         self.media_player.setVideoOutput(self.video_widget)
         self.media_player.setSource(QUrl.fromLocalFile(self.videoSource))
         self.media_player.positionChanged.connect(self.position_changed)
@@ -163,14 +150,12 @@ class VideoPlayer(QMainWindow):
         self.table = QTableWidget(0, 3)
         self.table.setHorizontalHeaderLabels(["Name","Mark In", "Mark Out"])
 
-        layout =QVBoxLayout()
+        layout = QVBoxLayout()
         Buttonlayout = QHBoxLayout()
         LowerButtonlayout = QHBoxLayout()
 
-
         Buttonlayout.addWidget(self.frb_button)
         Buttonlayout.addWidget(self.rb_button)
-
 
         LowerButtonlayout.addWidget(self.trslider,alignment=Qt.AlignmentFlag.AlignHCenter)
         LowerButtonlayout.addWidget(self.trsTracker)
@@ -179,9 +164,6 @@ class VideoPlayer(QMainWindow):
 
         Buttonlayout.addWidget(self.fb_button)
         Buttonlayout.addWidget(self.ffb_button)
-
-
-
 
         layout.addLayout(Buttonlayout)
         layout.addLayout(LowerButtonlayout)
@@ -195,12 +177,9 @@ class VideoPlayer(QMainWindow):
         playheadLayer.addWidget(self.playheadTracker,alignment=Qt.AlignmentFlag.AlignRight)
         layout.addLayout(playheadLayer)
 
-
-
         TagButtonLayout = QHBoxLayout()
         TagButtonLayout.addWidget(self.tagin_button,alignment=Qt.AlignmentFlag.AlignLeft, stretch=3)
         TagButtonLayout.addWidget(self.tagout_button,alignment=Qt.AlignmentFlag.AlignRight, stretch=3)
-
 
         layout.addLayout(TagButtonLayout)
 
@@ -209,14 +188,13 @@ class VideoPlayer(QMainWindow):
         self.saveAsButton = QPushButton("Save As")
         self.resetButton = QPushButton("Clear")
 
-
         self.openButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogOpenButton))
         self.saveButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
         self.saveAsButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
         self.saveAsButton.clicked.connect(self.saveAs)
         self.resetButton.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogResetButton))
 
-        tableLayout =QHBoxLayout()
+        tableLayout = QHBoxLayout()
         FileButtons = QVBoxLayout()
         tableLayout.addWidget(self.table)
         tableLayout.addLayout(FileButtons)
@@ -266,12 +244,8 @@ class VideoPlayer(QMainWindow):
     def trStepChanged(self):
         step = 100  # 1-second step
         position = self.trslider.sliderPosition()
-        self.newStep =self.speeds[position]
-        new_position = round(position / step) * step
-
-      #  self.trslider.setValue(new_position)
-
-      #  self.newStep = self.trslider.value()
+        self.newStep = self.speeds[position]
+        self.new_position = round(position / step) * step
         self.trsTracker.setText(str(self.newStep))
 
     def duration_changed(self, duration):
@@ -285,14 +259,13 @@ class VideoPlayer(QMainWindow):
 
     def fast_forward(self,ff=10):
         ms = ff*1000
-        newpos= int(min(self.media_player.duration(), self.media_player.position() + ms))
+        newpos = int(min(self.media_player.duration(), self.media_player.position() + ms))
         self.media_player.pause()
         self.media_player.setPosition(newpos)
 
     def load_video(self, file_path):
         self.media_player.setSource(QUrl.fromLocalFile(file_path))
-        self.videoSource=file_path
-        #self.media_player.play()
+        self.videoSource = file_path
         self.setWindowTitle(file_path)
 
     def dragEnterEvent(self, event):
@@ -303,16 +276,17 @@ class VideoPlayer(QMainWindow):
         file_path = event.mimeData().urls()[0].toLocalFile()
         if file_path.lower().endswith(('.mp4', '.avi', '.mkv', '.mov', '.wmv')):
             self.load_video(file_path)
-            self.filename =file_path.split(os.path.sep)[-1]
+            self.filename = file_path.split(os.path.sep)[-1]
 
     def convert_millisecondsToString(self,ms):
-        centiseconds =(ms // 100) %10
+        centiseconds = (ms // 100) % 10
         seconds = (ms // 1000) % 60
         minutes = (ms // (1000 * 60)) % 60
         hours = (ms // (1000 * 60 * 60))
         return f"{hours:02}:{minutes:02}:{seconds:02}:{centiseconds:01}"
+
     def saveAs(self):
-        filename=self.filename.rsplit('.',1)[0]+".avutils"
+        filename = self.filename.rsplit('.',1)[0]+".avutils"
         file_path, _ = QFileDialog.getSaveFileName(self,"Save As",filename,"avutils File (*.avutils);;All Files (*)")
         if len(file_path.strip()) >0:
             with (open(file_path, 'w', encoding='utf-8') as myfile):
