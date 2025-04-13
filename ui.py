@@ -300,7 +300,7 @@ class VideoPlayer(QMainWindow):
 
                     startTime= self.table.item(irow,1)
                     if not startTime or not startTime.text():
-                        startTimeText ='0:0:0'
+                        startTimeText ='0'
 
                     else:
                         startTimeText=startTime.text()
@@ -310,7 +310,7 @@ class VideoPlayer(QMainWindow):
                         endtimeText = None
                     else:
                         endtimeText=endtime.text()
-                        myfile.write(":"+endtimeText)
+                        myfile.write(" - "+endtimeText)
                     myfile.write("\n")
 
             myfile.close()

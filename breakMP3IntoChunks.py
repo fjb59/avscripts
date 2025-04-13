@@ -23,6 +23,7 @@ class MediaFileBreaker:
     allowedAudioCodecs = ('WAV','MP3','mp3','FLAC','flac','AAC')
     allowedVideoCodecs = ('AVI','MKV','MP4',"TS")
     associatedCodecs = {'AVI':'mpeg4','MP4':'mov,mp4,m4a,3gp,3g2,mj2','MKV':'hevc','TS':'mpegts','mp3':'MP2/3 (MPEG audio layer 2/3)'}
+    timeformats = ['hhmmss','ms']
 
     allowedImageExtensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff','image2')
     allowedOperations = ("break","quickconvert", "convert","dumpframes", "batch")
@@ -167,7 +168,7 @@ class MediaFileBreaker:
                 else:
                     name, param = parts
                 if name is not None:
-                    match name.lower():
+                    match name.lower().strip():
                         case "operation":
                             if param in self.allowedOperations:
                                 self.operation = param
@@ -221,6 +222,10 @@ class MediaFileBreaker:
                         case "segmentformat":
                             self.segmentFormat=self.remove_quotes(param).strip()
 
+                        case "timeformat":
+                            if param.strip() in self.timeformats:
+                                self.timeformat=param.strip()
+
 
 
                         case _ :
@@ -272,10 +277,17 @@ class MediaFileBreaker:
                     itemTime = self.queue[itemName]
                     match len(itemTime):
                         case 3:
-                            startTime = self.time_to_milliseconds(itemTime)
+                            if self.timeformat == 'hhmmss':
+                                startTime = self.time_to_milliseconds(itemTime)
+                            else:
+                                startTime = itemTime
                         case 6:
-                            startTime = self.time_to_milliseconds(itemTime[0:3])
-                            eTime =  self.time_to_milliseconds(itemTime[3:6])
+                            if self.timeformat == 'hhmmss':
+                                startTime = self.time_to_milliseconds(itemTime[0:3])
+                                eTime =  self.time_to_milliseconds(itemTime[3:6])
+                            else:
+                                startTime = itemTime[0:3]
+                                eTime = itemTime[3:6]
 
 
                     try:
@@ -666,6 +678,7 @@ class MediaFileBreaker:
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
         self.mono =False
         self.segmentFormat = tSegmentFormat
+        self.timeformat = 'hhmmss'
 
 
         if sCodec in self.allowedAudioCodecs or sCodec in self.allowedVideoCodecs:
