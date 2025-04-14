@@ -286,17 +286,17 @@ class MediaFileBreaker:
                     itemTime = self.queue[itemName]
                     match len(itemTime):
                         case 3:
-                            if self.timeformat == 'hhmmss':
-                                startTime = self.time_to_milliseconds(itemTime)
-                            else:
-                                startTime = itemTime
+                           # if self.timeformat == 'hhmmss':
+                            startTime = self.time_to_milliseconds(itemTime)
+                            #else:
+                            #    startTime = itemTime
                         case 6:
-                            if self.timeformat == 'hhmmss':
-                                startTime = self.time_to_milliseconds(itemTime[0:3])
-                                eTime =  self.time_to_milliseconds(itemTime[3:6])
-                            else:
-                                startTime = int(sTime)
-                                eTime = int(eTime)
+                            #if self.timeformat == 'hhmmss':
+                            startTime = self.time_to_milliseconds(itemTime[0:3])
+                            eTime =  self.time_to_milliseconds(itemTime[3:6])
+                            #else:
+                             #   startTime = int(sTime)
+                             #   eTime = int(eTime)
 
 
 
@@ -307,7 +307,10 @@ class MediaFileBreaker:
                             endTime = eTime
                             eTime = -1
                         else:
-                            endTime =self.time_to_milliseconds(nextTime)
+                            if len(nextTime) == 3:
+                                endTime =self.time_to_milliseconds(nextTime)
+                            elif len(nextTime) == 6:
+                                endTime = self.time_to_milliseconds(nextTime[-3:])
                         pass
                         #  diff = self.time_difference(itemTime, nextTime)
 
