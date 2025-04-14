@@ -108,6 +108,13 @@ class MediaFileBreaker:
         hours, minutes, seconds = tTime
         return (hours * 60 * 60 * 1000) + (minutes * 60 * 1000) + (seconds * 1000)
 
+    def milliseconds_to_time(self, tMs):
+        ms = int(tMs)
+        seconds = (ms // 1000) % 60
+        minutes = (ms // (1000 * 60)) % 60
+        hours = (ms // (1000 * 60 * 60))
+        return hours,minutes,seconds
+
     def time_difference(self,start, end):
 
         start_ms = self.time_to_milliseconds(start)
@@ -121,6 +128,8 @@ class MediaFileBreaker:
 
         try:
             match colons:
+                case 0:
+                    sHours, sMinutes, sSeconds = self.milliseconds_to_time(param)
                 case 1:
                     sHours = 0
                     sMinutes, sSeconds = param.rstrip().split(":")
@@ -286,8 +295,9 @@ class MediaFileBreaker:
                                 startTime = self.time_to_milliseconds(itemTime[0:3])
                                 eTime =  self.time_to_milliseconds(itemTime[3:6])
                             else:
-                                startTime = itemTime[0:3]
-                                eTime = itemTime[3:6]
+                                startTime = int(sTime)
+                                eTime = int(eTime)
+
 
 
                     try:
@@ -644,10 +654,10 @@ class MediaFileBreaker:
         # Convert the format to a regex pattern
         pattern = re.escape(defaultSegmentFormat.lower())
         pattern = pattern.replace(r'name', r'(?P<name>.+)')
-        pattern = pattern.replace(r'timesegment', r'(?P<timesegment>.+?)')
+        pattern = pattern.replace(r'timesegment', r'(?P<timesegment>.+)')
 
         # Match the input string
-        match = re.match(pattern, inputString)
+        match = re.match(pattern, inputString, re.IGNORECASE)
 
         if match:
             # Extract the name and timesegment

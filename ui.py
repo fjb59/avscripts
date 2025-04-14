@@ -290,7 +290,8 @@ class VideoPlayer(QMainWindow):
         file_path, _ = QFileDialog.getSaveFileName(self,"Save As",filename,"avutils File (*.avutils);;All Files (*)")
         if len(file_path.strip()) >0:
             with (open(file_path, 'w', encoding='utf-8') as myfile):
-                myfile.write(self.videoSource+"\n")
+                myfile.write("file=\""+self.videoSource+"\"\n")
+                myfile.write("timeformat=ms\n")
                 for irow in range(self.table.rowCount()):
                     itemName = self.table.item(irow,00)
                     if not itemName or not itemName.text():
