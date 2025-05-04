@@ -3,7 +3,7 @@ import sys
 
 from PyQt6.QtGui import QShortcut, QKeySequence
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QPushButton, QSlider, QHBoxLayout, \
-    QTableWidget, QTextEdit, QTableWidgetItem, QStyle, QFileDialog
+    QTableWidget, QTextEdit, QTableWidgetItem, QStyle, QFileDialog, QLineEdit
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtCore import QUrl, Qt
@@ -73,7 +73,7 @@ class VideoPlayer(QMainWindow):
         self.frb_button = QPushButton("")
         self.frb_button.setFixedSize(40,buttonHeight)
         self.frb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSkipBackward))
-        self.frb_button.clicked.connect(lambda: self.rewind(self.newStep))
+        self.frb_button.clicked.connect(lambda: self.rewind(self.newStep*2))
 
         self.rb_button = QPushButton("")
         self.rb_button.setFixedSize(40,buttonHeight)
@@ -105,7 +105,11 @@ class VideoPlayer(QMainWindow):
         self.trslider.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.trslider.sliderMoved.connect(self.trStepChanged)
 
-        self.trsTracker = QTextEdit(str(self.newStep))
+        self.trsSliderKeyForward = QShortcut(QKeySequence("."), self)
+        self.trsSliderKeyBackward = QShortcut(QKeySequence(","), self)
+        self.trsSliderKeyForward.activated.connect(self.trsForward)
+        self.trsSliderKeyBackward.activated.connect(self.trsBackward)
+        self.trsTracker = QTextEdit(str(self.speeds[int(len(self.speeds)/2)]))
         self.trsTracker.setFixedSize(96,24)
         self.trsTracker.setReadOnly(True)
 
@@ -114,24 +118,32 @@ class VideoPlayer(QMainWindow):
         self.fb_button.clicked.connect(lambda: self.fast_forward(self.newStep))
         self.fb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSeekForward))
 
+        self.left_arrow_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Left), self)
+        self.left_arrow_shortcut.activated.connect(self.on_left_arrow)
+
+        self.right_arrow_shortcut = QShortcut(QKeySequence(Qt.Key.Key_Right), self)
+        self.right_arrow_shortcut.activated.connect(self.on_right_arrow)
+
         self.ffb_button = QPushButton("")
         self.ffb_button.setFixedSize(40,buttonHeight)
         self.ffb_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MediaSkipForward))
-        self.ffb_button.clicked.connect(lambda: self.fast_forward(self.newStep))
+        self.ffb_button.clicked.connect(lambda: self.fast_forward(self.newStep*2))
+
+
 
         # tag in/ out buttons
         self.tagin_button = QPushButton("[")
         self.tagin_button.setFixedSize(32,buttonHeight)
         self.tagin_button.clicked.connect(self.tag_in)
 
-        self.inKeyShortcut = QShortcut(QKeySequence("["), self)
+        self.inKeyShortcut = QShortcut(QKeySequence("i"), self)
         self.inKeyShortcut.activated.connect(self.tag_in)
 
         self.tagout_button = QPushButton("]")
         self.tagout_button.setFixedSize(32,buttonHeight)
         self.tagout_button.clicked.connect(self.tag_out)
 
-        self.outKeyShortcut = QShortcut(QKeySequence("]"), self)
+        self.outKeyShortcut = QShortcut(QKeySequence("o"), self)
         self.outKeyShortcut.activated.connect(self.tag_out)
 
         self.slider = QSlider(Qt.Orientation.Horizontal)
@@ -284,6 +296,44 @@ class VideoPlayer(QMainWindow):
         minutes = (ms // (1000 * 60)) % 60
         hours = (ms // (1000 * 60 * 60))
         return f"{hours:02}:{minutes:02}:{seconds:02}:{centiseconds:01}"
+    def trsForward(self):
+        self.trslider.setValue(self.trslider.sliderPosition()+1)
+        self.trStepChanged()
+        pass
+    def trsBackward(self):
+        self.trslider.setValue(self.trslider.sliderPosition() - 1)
+        self.trStepChanged()
+        pass
+
+    def on_right_arrow(self):
+        focus_widget = QApplication.focusWidget()
+
+        if isinstance(focus_widget, (QTextEdit, QLineEdit)):
+            print("Shortcut ignored: focus is on an interactive widget.")
+            return
+        if isinstance(focus_widget, QTableWidget):
+            # Check if it has an active cell editor
+            if focus_widget.state() == QTableWidget.State.EditingState:
+                print("Shortcut ignored: table is actively editing.")
+                return
+
+        # Your custom action goes here
+        print("Right Arrow shortcut activated!")
+
+    def on_left_arrow(self):
+        focus_widget = QApplication.focusWidget()
+
+        if isinstance(focus_widget, (QTextEdit, QLineEdit)):
+            print("Shortcut ignored: focus is on an interactive widget.")
+            return
+        if isinstance(focus_widget, QTableWidget):
+            # Check if it has an active cell editor
+            if focus_widget.state() == QTableWidget.State.EditingState:
+                print("Shortcut ignored: table is actively editing.")
+                return
+
+        # Your custom action goes here
+        print("Right Arrow shortcut activated!")
 
     def saveAs(self):
         filename = self.filename.rsplit('.',1)[0]+".avutils"
