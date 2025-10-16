@@ -1,3 +1,4 @@
+import glob
 import math
 import os
 
@@ -326,16 +327,18 @@ class MediaFileBreaker:
 
                 self.writeQueue.append({itemName:(startTime,endTime)})
                 #startTime = diff + 1
-            del self.queue
+            #del self.queue
+            self.queue.clear()
         myfile.close()
 
 
 
 
     def addToQueue(self,tName, tParam):
-        if tName not in self.queue:
-            self.queue[tName]=tParam
-            pass
+
+            if tName not in self.queue:
+                self.queue[tName]=tParam
+                pass
 
     def get_file_metadata(self,file_path):
         # Get metadata using ffprobe
@@ -710,8 +713,16 @@ class MediaFileBreaker:
     def go(self):
         match self.operation:
             case "break":
-                self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
-                self.writeToFile()
+                if os.path.isfile(self.srcTextFile):
+                    self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
+                    self.writeToFile()
+                elif os.path.isdir(self.srcTextFile):
+                    os.chdir(self.srcTextFile)
+                    for file in glob.glob("*.avutils"):
+                        self.breakFile(file, self.dstFolder, self.delimiter)
+                        self.writeToFile()
+                    pass
+
 
             case "dumpframes":
                 self.destination_codec = "PNG"
