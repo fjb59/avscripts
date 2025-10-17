@@ -396,7 +396,7 @@ class MediaFileBreaker:
             return float(self.duration)
     def writeToFile(self,tSourceFileName ="",withM3u=False,asImages = False):
         sections = []
-        if not os.path.exists(self.dstFolder):
+        if not os.path.exists(self.dstFolder) and len(self.dstFolder) !=0 :
             os.makedirs(self.dstFolder,exist_ok=True)
         for item in self.writeQueue:
 
@@ -671,7 +671,7 @@ class MediaFileBreaker:
         else:
             return None, None
 
-    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath="", Delimiter='=',sCodec=None, dCodec=None,tSegmentFormat = defaultSegmentFormat):
+    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="./", DstPath='', Delimiter='=',sCodec=None, dCodec=None,tSegmentFormat = defaultSegmentFormat):
         self.queue = {}
         self.writeQueue = []
         self.srcPath=SrcPath
@@ -691,6 +691,8 @@ class MediaFileBreaker:
         self.metaData = {}
         self.sCodec = ""
         self.dCodec = ""
+        if len(DstPath.strip())==0:
+            DstPath=SrcPath
         self.srcTextFile, self.dstFolder, self.delimiter = SrcTextFile, DstPath, Delimiter
         self.mono =False
         self.segmentFormat = tSegmentFormat
@@ -717,10 +719,7 @@ class MediaFileBreaker:
                     self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
                     self.writeToFile()
                 elif os.path.isdir(self.srcTextFile):
-                    os.chdir(self.srcTextFile)
-                    for file in glob.glob("*.avutils"):
-                        self.breakFile(file, self.dstFolder, self.delimiter)
-                        self.writeToFile()
+
                     pass
 
 

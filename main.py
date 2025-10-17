@@ -1,3 +1,4 @@
+import glob
 import os
 import argparse
 from breakMP3IntoChunks import MediaFileBreaker
@@ -21,8 +22,16 @@ if __name__ == "__main__":
     match operation:
         case "break":
             if os.path.exists(srcTextFile):
-                afb = MediaFileBreaker(SrcTextFile=srcTextFile)
-                afb.go()
+                if os.path.isfile(srcTextFile):
+                    afb = MediaFileBreaker(SrcTextFile=srcTextFile)
+                    afb.go()
+                elif os.path.isdir(srcTextFile):
+                    os.chdir(srcTextFile)
+                    for file in glob.glob("*.avutils"):
+                        afb = MediaFileBreaker(SrcTextFile=file,SrcPath=srcTextFile)
+                        afb.go()
+                    pass
+
             else :
                 print (f"There is no text file named {srcTextFile}")
 
