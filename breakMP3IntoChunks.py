@@ -671,7 +671,7 @@ class MediaFileBreaker:
         else:
             return None, None
 
-    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="./", DstPath='', Delimiter='=',sCodec=None, dCodec=None,tSegmentFormat = defaultSegmentFormat):
+    def __init__(self,Operation="break", SrcTextFile="",SrcPath ="", DstPath='', Delimiter='=',sCodec=None, dCodec=None,tSegmentFormat = defaultSegmentFormat):
         self.queue = {}
         self.writeQueue = []
         self.srcPath=SrcPath
