@@ -28,7 +28,7 @@ if __name__ == "__main__":
                 elif os.path.isdir(srcTextFile):
                     os.chdir(srcTextFile)
                     for file in glob.glob("*.avutils"):
-                        afb = MediaFileBreaker(SrcTextFile=file,SrcPath=srcTextFile)
+                        afb = MediaFileBreaker(SrcTextFile=file)
                         afb.go()
                     pass
 

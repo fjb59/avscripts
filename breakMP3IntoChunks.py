@@ -158,7 +158,7 @@ class MediaFileBreaker:
         dstPath = ""
         sTime = 0
         eTime = 0
-        if tDstPath is not None:
+        if tDstPath is not None and len(tDstPath.rstrip())>0:
             dstPath = tDstPath
 
         with (open(tSrcTxt, 'r', encoding='utf-8') as myfile):
@@ -271,7 +271,8 @@ class MediaFileBreaker:
 
 
             myfile.close()
-            self.dstFolder = os.path.join(os.path.dirname(tSrcTxt), dstPath)
+
+            self.dstFolder = os.path.join(os.path.dirname(sourcePath), dstPath)
             startTime = 0
 
             keys = list(self.queue.keys())
