@@ -198,7 +198,8 @@ class MediaFileBreaker:
                             else:
                                 print(f"error: {self.sourcePath} does not exist!")
                                 myfile.close()
-                                exit(errors.fileNotFound)
+                                return -1
+                                #exit(errors.fileNotFound)
 
                         case "fps":
                             if self.operation in ("dumpframes"):
@@ -717,8 +718,11 @@ class MediaFileBreaker:
         match self.operation:
             case "break":
                 if os.path.isfile(self.srcTextFile):
-                    self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
-                    self.writeToFile()
+                    ok = self.breakFile(self.srcTextFile, self.dstFolder, self.delimiter)
+                    if ok is None:
+                        self.writeToFile()
+
+
                 elif os.path.isdir(self.srcTextFile):
 
                     pass
