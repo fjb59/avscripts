@@ -651,16 +651,17 @@ class MediaFileBreaker:
 
     def remove_quotes(self,s):
         # Check if the string starts and ends with the same type of quote
-        if (s.startswith('"') or  s.startswith('"')):
+        if s.startswith('"') or  s.startswith("'"):
             s = s[1:]  # Remove the first and last characters
-        if (s.endswith('"') or s.endswith("'")):
+        if s.endswith('"') or s.endswith("'"):
             s = s[:-1]
         return s  # Return the string unchanged if not enclosed in quotes
 
 
     def parse_segment(self,defaultSegmentFormat, inputString):
+
         # Convert the format to a regex pattern
-        pattern = re.escape(defaultSegmentFormat.lower())
+        pattern = re.escape(self.remove_quotes(defaultSegmentFormat.lower()))
         pattern = pattern.replace(r'name', r'(?P<name>.+)')
         pattern = pattern.replace(r'timesegment', r'(?P<timesegment>.+)')
 
